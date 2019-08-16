@@ -12,6 +12,11 @@ int FIRST_PIN = 8;
 
 uint8_t digit = 3;
 
+#define SECONDS_IN_DAY 31536000
+
+
+uint8_t currentAge = 27;
+uint8_t maxAge = 80;
 
 
 // Working variables
@@ -20,21 +25,23 @@ uint8_t digit = 3;
 bool buttonStatesPrev [3] = {false, false, false};
 bool buttonStates [3] = {false, false, false};
 
-long counter = 16527234;
+long counter = (maxAge-currentAge) * SECONDS_IN_DAY + 12858;
+long currentSecs = 0;
+unsigned long millsDelta;
+unsigned long prevMills;
+unsigned long currentMills;
+unsigned long outstandingMills = 0;
 
 
-
-void counterToDigit() {
-  long workingCounter = counter;
+void numberToDisplay(long number) {
+  long workingCounter = number;
   for ( int i = 0; i < 10; i++ ) {
     digit = workingCounter % 10;
     workingCounter = workingCounter / 10;
     digitalWrite(FIRST_PIN + i, LOW); 
     if (workingCounter == 0 && digit == 0) writeBlankToBus();
-    else writeDigitToBus();
+    else writeDigitToBus(digit);
     digitalWrite(FIRST_PIN + i, HIGH);
-    Serial.print(digit);
-    Serial.print('\n');
   }
 }
 
@@ -45,11 +52,11 @@ void writeBlankToBus() {
   digitalWrite(BCDD_PIN, 1);
 }
 
-void writeDigitToBus() {
-  digitalWrite(BCDA_PIN, (digit >> 0) & 1);
-  digitalWrite(BCDB_PIN, (digit >> 1) & 1);
-  digitalWrite(BCDC_PIN, (digit >> 2) & 1);
-  digitalWrite(BCDD_PIN, (digit >> 3) & 1);
+void writeDigitToBus(uint8_t d) {
+  digitalWrite(BCDA_PIN, (d >> 0) & 1);
+  digitalWrite(BCDB_PIN, (d >> 1) & 1);
+  digitalWrite(BCDC_PIN, (d >> 2) & 1);
+  digitalWrite(BCDD_PIN, (d >> 3) & 1);
 }
 void setup() {
   // initialize the LED pin as an output:
@@ -69,15 +76,23 @@ void setup() {
      digitalWrite(FIRST_PIN + i, HIGH); 
   }
 
-  
   Serial.begin(9600);
+  numberToDisplay(counter);
 
-  writeDigitToBus();
-  delay(500);
-  counterToDigit();
+ 
 }
 
 void loop() {
+  currentMills = millis();
+  millsDelta = currentMills - prevMills;
+  prevMills = currentMills;
+  outstandingMills += millsDelta;
+
+  while (outstandingMills > 1000) {
+    outstandingMills -= 1000;
+    counter--;
+  }
+  
   digitalWrite(LED_PIN, LOW); 
   buttonStates[0] = digitalRead(BTN_UP_PIN);
   buttonStates[1] = digitalRead(BTN_DOWN_PIN);
@@ -108,7 +123,7 @@ void loop() {
     buttonStatesPrev[i] = buttonStates[i];
   }
   
-  counterToDigit();
+  numberToDisplay(counter);
 
   delay(10);
 }
