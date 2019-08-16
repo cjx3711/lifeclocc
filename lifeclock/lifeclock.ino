@@ -31,6 +31,16 @@ unsigned long millsDelta;
 unsigned long prevMills;
 unsigned long currentMills;
 unsigned long outstandingMills = 0;
+unsigned long longPressMills = 0;
+bool blinkPhase;
+
+
+uint8_t currentDate = 24;
+uint8_t currentMonth = 7;
+uint16_t currentYear = 2019;
+
+bool stateSet = false;
+uint8_t stateSetState = 0;
 
 
 void numberToDisplay(long number) {
@@ -44,6 +54,50 @@ void numberToDisplay(long number) {
     digitalWrite(FIRST_PIN + i, HIGH);
   }
 }
+
+void dateToDisplay(uint8_t d, uint8_t m, uint16_t y, uint8_t state) {
+  uint16_t workings;
+  // Set date
+  workings = d;
+  for ( int i = 0; i < 2; i++ ) {
+    digit = workings % 10;
+    workings = workings / 10;
+    digitalWrite(FIRST_PIN + 8 + i, LOW); 
+    if ( state == 0 && blinkPhase ) writeBlankToBus();
+    else writeDigitToBus(digit);
+    digitalWrite(FIRST_PIN + 8 + i, HIGH);
+  }
+
+  // Set month
+  workings = m;
+  for ( int i = 0; i < 2; i++ ) {
+    digit = workings % 10;
+    workings = workings / 10;
+    digitalWrite(FIRST_PIN + 5 + i, LOW); 
+    if ( state == 1 && blinkPhase ) writeBlankToBus();
+    else writeDigitToBus(digit);
+    digitalWrite(FIRST_PIN + 5 + i, HIGH);
+  }
+
+  // Set year
+  workings = y;
+  for ( int i = 0; i < 4; i++ ) {
+    digit = workings % 10;
+    workings = workings / 10;
+    digitalWrite(FIRST_PIN + i, LOW); 
+    if ( state == 2 && blinkPhase ) writeBlankToBus();
+    else writeDigitToBus(digit);
+    digitalWrite(FIRST_PIN + i, HIGH);
+  }
+
+  // Blank the rest of the display
+  digitalWrite(FIRST_PIN + 7, LOW);
+  digitalWrite(FIRST_PIN + 4, LOW);  
+  writeBlankToBus();
+  digitalWrite(FIRST_PIN + 7, HIGH);
+  digitalWrite(FIRST_PIN + 4, HIGH); 
+}
+
 
 void writeBlankToBus() {
   digitalWrite(BCDA_PIN, 1);
@@ -87,6 +141,8 @@ void loop() {
   millsDelta = currentMills - prevMills;
   prevMills = currentMills;
   outstandingMills += millsDelta;
+  blinkPhase = (currentMills / 500) % 2;
+  
 
   while (outstandingMills > 1000) {
     outstandingMills -= 1000;
@@ -99,31 +155,57 @@ void loop() {
   buttonStates[2] = digitalRead(BTN_RESET_PIN);
 
 
-  // Detect if a button is clicked (state change from low to high)
-  if ( buttonStates[0] && !buttonStatesPrev[0]) {
-    digitalWrite(LED_PIN, HIGH);
-    counter++;
+
+//  // Detect if a button is clicked (state change from low to high)
+//  if ( buttonStates[0] && !buttonStatesPrev[0]) {
+//    digitalWrite(LED_PIN, HIGH);
+//    counter++;
+//  }
+//
+//  if ( buttonStates[1] && !buttonStatesPrev[1]) {
+//    digitalWrite(LED_PIN, HIGH); 
+//    counter--;
+//  }
+//
+//  if ( buttonStates[2] && !buttonStatesPrev[2]) {
+//    digitalWrite(LED_PIN, HIGH); 
+//    stateSet = !stateSet;
+//  }
+  
+  digitalWrite(LED_PIN, LOW);
+
+  if ( !stateSet ) {
+    if (buttonStates[2]) {
+      digitalWrite(LED_PIN, HIGH);
+      longPressMills += millsDelta;
+    } else {
+      longPressMills = 0;
+    }
+
+    if (longPressMills > 3000) {
+      stateSet = true;
+      longPressMills = 0;
+      stateSetState = 0;
+    }
+
+    numberToDisplay(counter);
+  } else {
+
+
+    if ( buttonStates[2] && !buttonStatesPrev[2]) {
+      if (stateSetState < 2) {
+        stateSetState++;
+      } else {
+        stateSet = false;
+      }
+    }
+    dateToDisplay(currentDate, currentMonth, currentYear, stateSetState);
   }
 
-  if ( buttonStates[1] && !buttonStatesPrev[1]) {
-    digitalWrite(LED_PIN, HIGH); 
-
-    counter--;
-
-  }
-
-  if ( buttonStates[2] && !buttonStatesPrev[2]) {
-    digitalWrite(LED_PIN, HIGH); 
-
-    counter = 0;
-
-  }
 
   for ( int i = 0; i < 3; i++ ) {
     buttonStatesPrev[i] = buttonStates[i];
   }
-  
-  numberToDisplay(counter);
 
   delay(10);
 }
