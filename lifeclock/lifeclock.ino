@@ -8,6 +8,8 @@ int BCDB_PIN = 24;
 int BCDC_PIN = 25;
 int BCDD_PIN = 26;
 
+int FIRST_PIN = 8;
+
 uint8_t digit = 3;
 
 
@@ -18,7 +20,37 @@ uint8_t digit = 3;
 bool buttonStatesPrev [3] = {false, false, false};
 bool buttonStates [3] = {false, false, false};
 
-long counter = 0;
+long counter = 16527234;
+
+
+
+void counterToDigit() {
+  long workingCounter = counter;
+  for ( int i = 0; i < 10; i++ ) {
+    digit = workingCounter % 10;
+    workingCounter = workingCounter / 10;
+    digitalWrite(FIRST_PIN + i, LOW); 
+    if (workingCounter == 0 && digit == 0) writeBlankToBus();
+    else writeDigitToBus();
+    digitalWrite(FIRST_PIN + i, HIGH);
+    Serial.print(digit);
+    Serial.print('\n');
+  }
+}
+
+void writeBlankToBus() {
+  digitalWrite(BCDA_PIN, 1);
+  digitalWrite(BCDB_PIN, 1);
+  digitalWrite(BCDC_PIN, 1);
+  digitalWrite(BCDD_PIN, 1);
+}
+
+void writeDigitToBus() {
+  digitalWrite(BCDA_PIN, (digit >> 0) & 1);
+  digitalWrite(BCDB_PIN, (digit >> 1) & 1);
+  digitalWrite(BCDC_PIN, (digit >> 2) & 1);
+  digitalWrite(BCDD_PIN, (digit >> 3) & 1);
+}
 void setup() {
   // initialize the LED pin as an output:
   pinMode(LED_PIN, OUTPUT);
@@ -31,22 +63,18 @@ void setup() {
   pinMode(BCDB_PIN, OUTPUT);
   pinMode(BCDC_PIN, OUTPUT);
   pinMode(BCDD_PIN, OUTPUT);
+
+  for (int i = 0 ; i < 10 ; i++) {
+     pinMode(FIRST_PIN + i, OUTPUT);
+     digitalWrite(FIRST_PIN + i, HIGH); 
+  }
+
   
   Serial.begin(9600);
 
-  digitalWrite(BCDA_PIN, (digit >> 0) & 1);
-  digitalWrite(BCDB_PIN, (digit >> 1) & 1); 
-  digitalWrite(BCDC_PIN, (digit >> 2) & 1); 
-  digitalWrite(BCDD_PIN, (digit >> 3) & 1); 
-  
-  Serial.print((digit >> 0) & 1);
-  Serial.print("\n");
-  Serial.print((digit >> 1) & 1);
-  Serial.print("\n");
-  Serial.print((digit >> 2) & 1);
-  Serial.print("\n");
-  Serial.print((digit >> 3) & 1);
-  Serial.print("\n");
+  writeDigitToBus();
+  delay(500);
+  counterToDigit();
 }
 
 void loop() {
@@ -59,36 +87,28 @@ void loop() {
   // Detect if a button is clicked (state change from low to high)
   if ( buttonStates[0] && !buttonStatesPrev[0]) {
     digitalWrite(LED_PIN, HIGH);
-    if (digit == 9) digit = 0;
-    else digit++;
+    counter++;
   }
 
   if ( buttonStates[1] && !buttonStatesPrev[1]) {
     digitalWrite(LED_PIN, HIGH); 
 
-    if (digit == 0) digit = 9;
-    else digit--;
+    counter--;
 
   }
 
   if ( buttonStates[2] && !buttonStatesPrev[2]) {
     digitalWrite(LED_PIN, HIGH); 
 
-    digit = 0;
+    counter = 0;
 
   }
 
   for ( int i = 0; i < 3; i++ ) {
     buttonStatesPrev[i] = buttonStates[i];
   }
-
-
-
-  digitalWrite(BCDA_PIN, (digit >> 0) & 1);
-  digitalWrite(BCDB_PIN, (digit >> 1) & 1); 
-  digitalWrite(BCDC_PIN, (digit >> 2) & 1); 
-  digitalWrite(BCDD_PIN, (digit >> 3) & 1); 
-
+  
+  counterToDigit();
 
   delay(10);
 }
