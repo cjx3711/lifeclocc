@@ -43,6 +43,7 @@ unsigned long prevMills;
 unsigned long currentMills;
 unsigned long outstandingMills = 0;
 unsigned long longPressMills = 0;
+unsigned long longPress2Mills = 0;
 unsigned long timeoutMills = 0;
 bool blinkPhase;
 
@@ -62,7 +63,7 @@ uint16_t birthDate = 29;
 uint16_t birthMonth = 5;
 uint16_t birthYear = 1992;
 
-bool stateSet = false;
+uint8_t stateSet = 0;
 uint8_t stateCounter = 0;
 
 void numberToDisplay(long number) {
@@ -184,11 +185,11 @@ bool buttonPress(uint8_t btn) {
 
 
 bool userModifyVariable(uint16_t &var, uint16_t min, uint16_t max) {
-  if (buttonRelease(BTN_UP)) {
+  if (buttonPress(BTN_UP)) {
     if (var == max) var = min;
     else var++;
     return true;
-  } else if(buttonRelease(BTN_DOWN)) {
+  } else if(buttonPress(BTN_DOWN)) {
     if (var == min) var = max;
     else var--;
     return true;
@@ -248,10 +249,24 @@ void loop() {
     longPressMills = 0;
   }
 
-  if ( !stateSet ) {
+  if (buttonStates[BTN_UP] || buttonStates[BTN_DOWN]) {
+    digitalWrite(LED_PIN, HIGH);
+    longPress2Mills += millsDelta;
+  } else {
+    longPress2Mills = 0;
+  }
+
+  if ( stateSet == 0 ) {
     // ----- REGULAR CLOCK STATE -------
     if (longPressMills > LONG_PRESS_TIMEOUT) {
-      stateSet = true;
+      stateSet = 1;
+      longPressMills = 0;
+      stateCounter = 0;
+      timeoutMills = 0;
+    }
+
+    if (longPress2Mills > LONG_PRESS_TIMEOUT) {
+      stateSet = 2;
       longPressMills = 0;
       stateCounter = 0;
       timeoutMills = 0;
@@ -282,8 +297,8 @@ void loop() {
         getTime();
         timeToDsplay(currentHour, currentMinute, currentSecond, 0); break;
     }
-  } else {
-    // ----- SETTING STATE -----
+  } else if (stateSet == 1) {
+    // ----- SETTING DATE STATE -----
     getTime();
     // printTime();
     bool timeChanged = false;
@@ -312,7 +327,8 @@ void loop() {
 
     if (longPressMills > LONG_PRESS_TIMEOUT) {
       longPressMills = 0;
-      stateSet = false;
+      stateSet = 0;
+      stateCounter = 0;
     }
 
 
@@ -324,6 +340,35 @@ void loop() {
 
     if (stateCounter <= 3) dateToDisplay(currentDate, currentMonth, currentYear + 1970, stateCounter == 0 ? 1 : stateCounter);
     else timeToDsplay(currentHour, currentMinute, currentSecond, stateCounter - 3);
+  } else if (stateSet == 2) {
+    // ------- SETTING BIRTHDAY STATE --------
+    bool timeChanged = false;
+    switch(stateCounter) {
+      case 0: // Day
+        timeChanged = userModifyVariable(birthDate, 1, 31); break;
+      case 1: // Month
+        timeChanged = userModifyVariable(birthMonth, 1, 12); break;
+      case 2: // Year
+        timeChanged = userModifyVariable(birthYear, 1900, 2100); break;
+    }
+
+    dateToDisplay(birthDate, birthMonth, birthYear, stateCounter + 1);
+
+    if ( buttonRelease(BTN_RESET) ) {
+      stateCounter++;
+      if (stateCounter >= 3) stateCounter = 0;
+    }
+
+    if (longPressMills > LONG_PRESS_TIMEOUT) {
+      longPressMills = 0;
+      stateSet = 0;
+      stateCounter = 0;
+    }
+
+    if (anyButtonRelease()) timeoutMills = 0; // Reset the timeout counter
+    if (timeoutMills > SET_STATE_TIMEOUT) {
+      stateSet = false;
+    }
   }
 
 
