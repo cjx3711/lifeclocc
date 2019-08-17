@@ -1,6 +1,7 @@
 #include <DS1307RTC.h>
 #include <Time.h>
 #include <Wire.h>
+#include <avr/eeprom.h>
 
 #define LED_PIN 6
 
@@ -24,6 +25,19 @@
 #define BTN_UP 0
 #define BTN_DOWN 1
 #define BTN_RESET 2
+
+struct SDate {
+  uint16_t date;
+  uint16_t month;
+  uint16_t year;
+};
+
+bool validDate(SDate date) {
+  if (date.date < 1 || date.date > 31) return false;
+  if (date.month < 1 || date.month > 12) return false;
+  if (date.year < 1900 || date.year > 2100) return false;
+  return true;
+}
 
 uint8_t digit = 3;
 uint8_t currentAge = 27;
@@ -59,9 +73,7 @@ uint16_t currentMinute = 0;
 uint16_t currentHour = 0;
 uint16_t currentSecond = 0;
 
-uint16_t birthDate = 29;
-uint16_t birthMonth = 5;
-uint16_t birthYear = 1992;
+SDate birthDate;
 
 uint8_t stateSet = 0;
 uint8_t stateCounter = 0;
@@ -220,6 +232,19 @@ void setup() {
   Serial.begin(9600);
   while (!Serial) ; // wait for serial
   numberToDisplay(counter);
+
+  eeprom_read_block((void*)&birthDate, (void*)0, sizeof(birthDate));
+
+  if (!validDate(birthDate)) {
+    birthDate.date = 1;
+    birthDate.month = 1;
+    birthDate.year = 1990;
+    eeprom_write_block((const void*)&birthDate, (void*)0, sizeof(birthDate));
+  } else {
+    Serial.println(birthDate.date);
+    Serial.println(birthDate.month);
+    Serial.println(birthDate.year);
+  }
 }
 
 void loop() {
@@ -345,14 +370,16 @@ void loop() {
     bool timeChanged = false;
     switch(stateCounter) {
       case 0: // Day
-        timeChanged = userModifyVariable(birthDate, 1, 31); break;
+        timeChanged = userModifyVariable(birthDate.date, 1, 31); break;
       case 1: // Month
-        timeChanged = userModifyVariable(birthMonth, 1, 12); break;
+        timeChanged = userModifyVariable(birthDate.month, 1, 12); break;
       case 2: // Year
-        timeChanged = userModifyVariable(birthYear, 1900, 2100); break;
+        timeChanged = userModifyVariable(birthDate.year, 1900, 2100); break;
     }
 
-    dateToDisplay(birthDate, birthMonth, birthYear, stateCounter + 1);
+    if (timeChanged) eeprom_write_block((const void*)&birthDate, (void*)0, sizeof(birthDate));
+
+    dateToDisplay(birthDate.date, birthDate.month, birthDate.year, stateCounter + 1);
 
     if ( buttonRelease(BTN_RESET) ) {
       stateCounter++;
