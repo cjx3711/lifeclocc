@@ -12,7 +12,6 @@
 
 #define FIRST_PIN 8
 
-#define SECONDS_IN_DAY 31536000
 #define LONG_PRESS_TIMEOUT 2000
 #define SET_STATE_TIMEOUT 15000
 #define CLOCK_STATE_TIMEOUT 5000
@@ -39,41 +38,33 @@ bool validDate(SDate date) {
   return true;
 }
 
-uint8_t digit = 3;
-uint8_t currentAge = 27;
-uint8_t maxAge = 80;
-
-
-// Working variables
 
 // Button states for UP, DOWN, RESET
 bool buttonStatesPrev [3] = {false, false, false};
 bool buttonStates [3] = {false, false, false};
 
-long counter = (maxAge-currentAge) * SECONDS_IN_DAY + 12858;
-long currentSecs = 0;
+long counter;
 unsigned long millsDelta;
 unsigned long prevMills;
 unsigned long currentMills;
-unsigned long outstandingMills = 0;
 unsigned long longPressMills = 0;
 unsigned long longPress2Mills = 0;
 unsigned long timeoutMills = 0;
 bool blinkPhase;
 
+// Working variables
+uint8_t digit;
 
 // Date calculation workings
 tmElements_t tm;
+tmElements_t tm2;
 
-uint16_t currentDate = 24;
-uint16_t currentMonth = 7;
-uint16_t currentYear = 2019;
+SDate currentDate;
+SDate birthDate;
 
 uint16_t currentMinute = 0;
 uint16_t currentHour = 0;
 uint16_t currentSecond = 0;
-
-SDate birthDate;
 
 uint8_t stateSet = 0;
 uint8_t stateCounter = 0;
@@ -251,14 +242,8 @@ void loop() {
   currentMills = millis();
   millsDelta = currentMills - prevMills;
   prevMills = currentMills;
-  outstandingMills += millsDelta;
   timeoutMills += millsDelta;
   blinkPhase = (currentMills / BLINK_MS) % 2;
-
-  while (outstandingMills > 1000) {
-    outstandingMills -= 1000;
-    counter--;
-  }
 
   digitalWrite(LED_PIN, LOW);
   buttonStates[BTN_UP] = digitalRead(BTN_UP_PIN);
@@ -312,14 +297,14 @@ void loop() {
       stateCounter = 0;
     }
 
+    getTime();
+    counter = getSecondsTillDeath();
     switch(stateCounter) {
       case 0:
         numberToDisplay(counter); break;
       case 1:
-        getTime();
-        dateToDisplay(currentDate, currentMonth, currentYear + 1970, 0); break;
+        dateToDisplay(currentDate.date, currentDate.month, currentDate.year + 1970, 0); break;
       case 2:
-        getTime();
         timeToDsplay(currentHour, currentMinute, currentSecond, 0); break;
     }
   } else if (stateSet == 1) {
@@ -330,11 +315,11 @@ void loop() {
     switch(stateCounter) {
       case 0: // Day
       case 1: // To allo for the first button release
-        timeChanged = userModifyVariable(currentDate, 1, 31); break;
+        timeChanged = userModifyVariable(currentDate.date, 1, 31); break;
       case 2: // Month
-        timeChanged = userModifyVariable(currentMonth, 1, 12); break;
+        timeChanged = userModifyVariable(currentDate.month, 1, 12); break;
       case 3: // Year
-        timeChanged = userModifyVariable(currentYear, 0, 150); break;
+        timeChanged = userModifyVariable(currentDate.year, 0, 150); break;
       case 4: // Hour
         timeChanged = userModifyVariable(currentHour, 0, 23); break;
       case 5: // Minute
@@ -363,7 +348,7 @@ void loop() {
     }
 
 
-    if (stateCounter <= 3) dateToDisplay(currentDate, currentMonth, currentYear + 1970, stateCounter == 0 ? 1 : stateCounter);
+    if (stateCounter <= 3) dateToDisplay(currentDate.date, currentDate.month, currentDate.year + 1970, stateCounter == 0 ? 1 : stateCounter);
     else timeToDsplay(currentHour, currentMinute, currentSecond, stateCounter - 3);
   } else if (stateSet == 2) {
     // ------- SETTING BIRTHDAY STATE --------
@@ -408,13 +393,23 @@ void loop() {
 
 void getTime() {
   if (RTC.read(tm)) {
-    currentDate = tm.Day;
-    currentMonth = tm.Month;
-    currentYear = tm.Year;
+    currentDate.date = tm.Day;
+    currentDate.month = tm.Month;
+    currentDate.year = tm.Year;
     currentHour = tm.Hour;
     currentMinute = tm.Minute;
     currentSecond = tm.Second;
   }
+}
+
+long getSecondsTillDeath() {
+  tm2.Day = birthDate.date;
+  tm2.Month = birthDate.month;
+  tm2.Year = birthDate.year + 80 - 1970;
+  tm2.Hour = tm2.Minute = tm2.Second = 0;
+  time_t t1 = makeTime(tm);
+  time_t t2 = makeTime(tm2);
+  return t2 - t1;
 }
 
 void printTime() {
@@ -445,9 +440,9 @@ void printTime() {
 }
 
 void setTime() {
-  tm.Day = currentDate;
-  tm.Month = currentMonth;
-  tm.Year = currentYear;
+  tm.Day = currentDate.date;
+  tm.Month = currentDate.month;
+  tm.Year = currentDate.year;
   tm.Hour = currentHour;
   tm.Minute = currentMinute;
   tm.Second = currentSecond;
