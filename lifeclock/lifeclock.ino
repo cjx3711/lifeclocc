@@ -16,14 +16,14 @@
 
 #define FIRST_PIN 8
 
-#define LONG_PRESS_TIMEOUT 2000
+#define LONG_PRESS_TIMEOUT 1000
 #define SET_STATE_TIMEOUT 15000
 #define CLOCK_STATE_TIMEOUT 5000
 #define BLINK_MS 250
 
-#define BTN_UP_PIN 7
+#define BTN_UP_PIN 4
 #define BTN_DOWN_PIN 5
-#define BTN_RESET_PIN 4
+#define BTN_RESET_PIN 7
 
 #define BTN_UP 0
 #define BTN_DOWN 1
@@ -152,6 +152,15 @@ void dateToDisplay(uint16_t d, uint16_t m, uint16_t y, uint8_t blinkWhich) {
   }
 }
 
+uint16_t daysInMonth(uint16_t month, uint16_t year) {
+  bool leapYear = year % 4 == 0;
+  uint16_t months [12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+  if (leapYear && month == 2) {
+    return 29;
+  } else {
+    return months[month-1];
+  }
+}
 
 void setDigit(uint8_t which, uint8_t number) {
   digitalWrite(FIRST_PIN + which, LOW);
@@ -314,12 +323,12 @@ void loop() {
     }
 
     if (buttonRelease(BTN_UP)) {
-      if (!stateCounter) stateCounter = 2;
+      if (stateCounter != 2) stateCounter = 2;
       else stateCounter = 0;
     }
 
     if (buttonRelease(BTN_DOWN)) {
-      if (!stateCounter) stateCounter = 1;
+      if (stateCounter != 1) stateCounter = 1;
       else stateCounter = 0;
     }
 
@@ -346,10 +355,11 @@ void loop() {
     getTime();
     // printTime();
     bool timeChanged = false;
+    uint16_t maxDays = daysInMonth(currentDate.month, currentDate.year + 1970);
     switch(stateCounter) {
       case 0: // Day
-      case 1: // To allo for the first button release
-        timeChanged = userModifyVariable(currentDate.date, 1, 31); break;
+      case 1: // To allow for the first button release
+        timeChanged = userModifyVariable(currentDate.date, 1, maxDays); break;
       case 2: // Month
         timeChanged = userModifyVariable(currentDate.month, 1, 12); break;
       case 3: // Year
@@ -361,6 +371,9 @@ void loop() {
       case 6: // Second
         timeChanged = userModifyVariable(currentSecond, 0, 59); break;
     }
+
+    maxDays = daysInMonth(currentDate.month, currentDate.year + 1970);
+    if (currentDate.date > maxDays) currentDate.date = maxDays;
 
     if (timeChanged) setTime();
 
@@ -392,15 +405,18 @@ void loop() {
     analogWrite(BIRTHDAY_LED_PIN, 128);
     // ------- SETTING BIRTHDAY STATE --------
     bool timeChanged = false;
+    uint16_t maxDays = daysInMonth(birthDate.month, birthDate.year);
     switch(stateCounter) {
       case 0: // Day
-        timeChanged = userModifyVariable(birthDate.date, 1, 31); break;
+        timeChanged = userModifyVariable(birthDate.date, 1, maxDays); break;
       case 1: // Month
         timeChanged = userModifyVariable(birthDate.month, 1, 12); break;
       case 2: // Year
         timeChanged = userModifyVariable(birthDate.year, 1900, 2100); break;
     }
 
+    maxDays = daysInMonth(birthDate.month, birthDate.year);
+    if (birthDate.date > maxDays) birthDate.date = maxDays;
     if (timeChanged) eeprom_write_block((const void*)&birthDate, (void*)0, sizeof(birthDate));
 
     dateToDisplay(birthDate.date, birthDate.month, birthDate.year, stateCounter + 1);
