@@ -4,6 +4,10 @@
 #include <avr/eeprom.h>
 
 #define LED_PIN 6
+#define SET_LED_PIN 42
+#define DATE_LED_PIN 43
+#define TIME_LED_PIN 44
+#define BIRTHDAY_LED_PIN 45
 
 #define BCDA_PIN 23
 #define BCDB_PIN 24
@@ -15,7 +19,7 @@
 #define LONG_PRESS_TIMEOUT 2000
 #define SET_STATE_TIMEOUT 15000
 #define CLOCK_STATE_TIMEOUT 5000
-#define BLINK_MS 500
+#define BLINK_MS 250
 
 #define BTN_UP_PIN 7
 #define BTN_DOWN_PIN 5
@@ -200,9 +204,29 @@ bool userModifyVariable(uint16_t &var, uint16_t min, uint16_t max) {
   return false;
 }
 
+void setupBlink() {
+  digitalWrite(LED_PIN, HIGH);
+  analogWrite(SET_LED_PIN, 128);
+  analogWrite(DATE_LED_PIN, 128);
+  analogWrite(TIME_LED_PIN, 128);
+  analogWrite(BIRTHDAY_LED_PIN, 128);
+  delay(100);
+  digitalWrite(LED_PIN, LOW);
+  analogWrite(SET_LED_PIN, 0);
+  analogWrite(DATE_LED_PIN, 0);
+  analogWrite(TIME_LED_PIN, 0);
+  analogWrite(BIRTHDAY_LED_PIN, 0);
+  delay(300);
+}
+
 void setup() {
   // Initialise the LED pin as an output:
   pinMode(LED_PIN, OUTPUT);
+  pinMode(SET_LED_PIN, OUTPUT);
+  pinMode(DATE_LED_PIN, OUTPUT);
+  pinMode(TIME_LED_PIN, OUTPUT);
+  pinMode(BIRTHDAY_LED_PIN, OUTPUT);
+  setupBlink();
   // Initialise the pushbutton pins as an input:
   pinMode(BTN_UP_PIN, INPUT);
   pinMode(BTN_DOWN_PIN, INPUT);
@@ -220,9 +244,10 @@ void setup() {
      digitalWrite(FIRST_PIN + i, HIGH);
   }
 
-  Serial.begin(9600);
-  while (!Serial) ; // wait for serial
+  // Serial.begin(9600);
   numberToDisplay(counter);
+
+  setupBlink();
 
   eeprom_read_block((void*)&birthDate, (void*)0, sizeof(birthDate));
 
@@ -232,10 +257,12 @@ void setup() {
     birthDate.year = 1990;
     eeprom_write_block((const void*)&birthDate, (void*)0, sizeof(birthDate));
   } else {
-    Serial.println(birthDate.date);
-    Serial.println(birthDate.month);
-    Serial.println(birthDate.year);
+    // Serial.println(birthDate.date);
+    // Serial.println(birthDate.month);
+    // Serial.println(birthDate.year);
   }
+
+  setupBlink();
 }
 
 void loop() {
@@ -251,6 +278,10 @@ void loop() {
   buttonStates[BTN_RESET] = digitalRead(BTN_RESET_PIN);
 
   digitalWrite(LED_PIN, LOW);
+  analogWrite(SET_LED_PIN, 0);
+  analogWrite(DATE_LED_PIN, 0);
+  analogWrite(TIME_LED_PIN, 0);
+  analogWrite(BIRTHDAY_LED_PIN, 0);
 
   if (buttonStates[BTN_RESET]) {
     digitalWrite(LED_PIN, HIGH);
@@ -282,14 +313,14 @@ void loop() {
       timeoutMills = 0;
     }
 
-    if (buttonPress(BTN_UP)) {
-      if (stateCounter == 2) stateCounter = 0;
-      else stateCounter++;
+    if (buttonRelease(BTN_UP)) {
+      if (!stateCounter) stateCounter = 2;
+      else stateCounter = 0;
     }
 
-    if (buttonPress(BTN_DOWN)) {
-      if (stateCounter == 0) stateCounter = 2;
-      else stateCounter--;
+    if (buttonRelease(BTN_DOWN)) {
+      if (!stateCounter) stateCounter = 1;
+      else stateCounter = 0;
     }
 
     if (anyButtonRelease()) timeoutMills = 0; // Reset the timeout counter
@@ -303,11 +334,14 @@ void loop() {
       case 0:
         numberToDisplay(counter); break;
       case 1:
+        analogWrite(DATE_LED_PIN, 128);
         dateToDisplay(currentDate.date, currentDate.month, currentDate.year + 1970, 0); break;
       case 2:
+        analogWrite(TIME_LED_PIN, 128);
         timeToDsplay(currentHour, currentMinute, currentSecond, 0); break;
     }
   } else if (stateSet == 1) {
+    analogWrite(SET_LED_PIN, 128);
     // ----- SETTING DATE STATE -----
     getTime();
     // printTime();
@@ -341,16 +375,21 @@ void loop() {
       stateCounter = 0;
     }
 
-
     if (anyButtonRelease()) timeoutMills = 0; // Reset the timeout counter
     if (timeoutMills > SET_STATE_TIMEOUT) {
       stateSet = false;
     }
 
-
-    if (stateCounter <= 3) dateToDisplay(currentDate.date, currentDate.month, currentDate.year + 1970, stateCounter == 0 ? 1 : stateCounter);
-    else timeToDsplay(currentHour, currentMinute, currentSecond, stateCounter - 3);
+    if (stateCounter <= 3) {
+      if ( blinkPhase ) analogWrite(DATE_LED_PIN, 128);
+      dateToDisplay(currentDate.date, currentDate.month, currentDate.year + 1970, stateCounter == 0 ? 1 : stateCounter);
+    } else {
+      if ( blinkPhase ) analogWrite(TIME_LED_PIN, 128);
+      timeToDsplay(currentHour, currentMinute, currentSecond, stateCounter - 3);
+    }
   } else if (stateSet == 2) {
+    analogWrite(SET_LED_PIN, 128);
+    analogWrite(BIRTHDAY_LED_PIN, 128);
     // ------- SETTING BIRTHDAY STATE --------
     bool timeChanged = false;
     switch(stateCounter) {
