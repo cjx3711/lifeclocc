@@ -15,8 +15,7 @@ extern long counter;
 extern unsigned long millsDelta;
 extern unsigned long prevMills;
 extern unsigned long currentMills;
-extern unsigned long longPressMills;
-extern unsigned long longPress2Mills;
+extern unsigned long longPressMills [];
 extern unsigned long timeoutMills;
 extern bool blinkPhase;
 
@@ -50,11 +49,28 @@ bool anyButtonRelease();
 bool buttonRelease(uint8_t btn);
 bool buttonPress(uint8_t btn);
 bool userModifyVariable(uint16_t &var, uint16_t min, uint16_t max);
-void setupBlink();
 void getTime();
 long getSecondsTillDeath();
+
+void print2digits(int number);
 void printTime();
 void setTime();
-void print2digits(int number);
+
+// ================================ SETUP ======================================
+void setupBlink();
+void splashScreen();
+void initVariables();
+void initPins();
+
+// ================================ STATES =====================================
+void preLoop();
+void buttonStatePreLoop();
+void buttonStatePostLoop();
+
+void changeState(uint8_t state);
+
+void stateClock();
+void stateSetClock();
+void stateSetBirthday();
 
 #endif

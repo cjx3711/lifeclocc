@@ -148,21 +148,6 @@ bool userModifyVariable(uint16_t &var, uint16_t min, uint16_t max) {
   return false;
 }
 
-void setupBlink() {
-  digitalWrite(LED_PIN, HIGH);
-  analogWrite(SET_LED_PIN, 128);
-  analogWrite(DATE_LED_PIN, 128);
-  analogWrite(TIME_LED_PIN, 128);
-  analogWrite(BIRTHDAY_LED_PIN, 128);
-  delay(100);
-  digitalWrite(LED_PIN, LOW);
-  analogWrite(SET_LED_PIN, 0);
-  analogWrite(DATE_LED_PIN, 0);
-  analogWrite(TIME_LED_PIN, 0);
-  analogWrite(BIRTHDAY_LED_PIN, 0);
-  delay(300);
-}
-
 void getTime() {
   if (RTC.read(tm)) {
     currentDate.date = tm.Day;
@@ -184,7 +169,15 @@ long getSecondsTillDeath() {
   return t2 - t1;
 }
 
+void print2digits(int number) {x
+  if (number >= 0 && number < 10) {
+    Serial.write('0');
+  }
+  Serial.print(number);
+}
+
 void printTime() {
+  if (!DEBUG) return;
   if (RTC.read(tm)) {
     Serial.print("Ok, Time = ");
     print2digits(tm.Hour);
@@ -221,9 +214,234 @@ void setTime() {
   RTC.write(tm);
 }
 
-void print2digits(int number) {
-  if (number >= 0 && number < 10) {
-    Serial.write('0');
+// ================================= SETUP =====================================
+void initVariables() {
+  longPressMills = 0;
+  longPress2Mills = 0;
+  timeoutMills = 0;
+
+  currentMinute = 0;
+  currentHour = 0;
+  currentSecond = 0;
+
+  programState = 0;
+  stateCounter = 0;
+
+}
+
+void initPins() {
+  // Initialise the LED pin as an output:
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(SET_LED_PIN, OUTPUT);
+  pinMode(DATE_LED_PIN, OUTPUT);
+  pinMode(TIME_LED_PIN, OUTPUT);
+  pinMode(BIRTHDAY_LED_PIN, OUTPUT);
+
+  // Initialise the pushbutton pins as an input:
+  pinMode(BTN_UP_PIN, INPUT);
+  pinMode(BTN_DOWN_PIN, INPUT);
+  pinMode(BTN_RESET_PIN, INPUT);
+
+  // Initialise bus pins
+  pinMode(BCDA_PIN, OUTPUT);
+  pinMode(BCDB_PIN, OUTPUT);
+  pinMode(BCDC_PIN, OUTPUT);
+  pinMode(BCDD_PIN, OUTPUT);
+
+  // Initialise all the control pins
+  for (int i = 0; i < 10; i++) pinMode(FIRST_PIN + i, OUTPUT);
+}
+
+void setupBlink() {
+  digitalWrite(LED_PIN, HIGH);
+  analogWrite(SET_LED_PIN, 128);
+  analogWrite(DATE_LED_PIN, 128);
+  analogWrite(TIME_LED_PIN, 128);
+  analogWrite(BIRTHDAY_LED_PIN, 128);
+  delay(100);
+  digitalWrite(LED_PIN, LOW);
+  analogWrite(SET_LED_PIN, 0);
+  analogWrite(DATE_LED_PIN, 0);
+  analogWrite(TIME_LED_PIN, 0);
+  analogWrite(BIRTHDAY_LED_PIN, 0);
+  delay(300);
+}
+
+
+void blankScreen() {
+  for (int i = 0; i < 10; i++) digitalWrite(FIRST_PIN + i, LOW);
+  writeBlankToBus();
+  for (int i = 0; i < 10; i++) digitalWrite(FIRST_PIN + i, HIGH);
+}
+
+void splashScreen() {
+  for (int i = 0; i < 10; i++) digitalWrite(FIRST_PIN + i, LOW);
+  writeDigitToBus(8);
+  for (int i = 0; i < 10; i++) digitalWrite(FIRST_PIN + i, HIGH);
+
+}
+
+// ================================ STATES =====================================
+
+void preLoop() {
+  currentMills = millis();
+  millsDelta = currentMills - prevMills;
+  prevMills = currentMills;
+  timeoutMills += millsDelta;
+  blinkPhase = (currentMills / BLINK_MS) % 2;
+  
+  // Reset all the indicatr lights
+  digitalWrite(LED_PIN, LOW);
+  analogWrite(SET_LED_PIN, 0);
+  analogWrite(DATE_LED_PIN, 0);
+  analogWrite(TIME_LED_PIN, 0);
+  analogWrite(BIRTHDAY_LED_PIN, 0);
+}
+
+void buttonStatePreLoop() {
+  buttonStates[BTN_UP] = digitalRead(BTN_UP_PIN);
+  buttonStates[BTN_DOWN] = digitalRead(BTN_DOWN_PIN);
+  buttonStates[BTN_RESET] = digitalRead(BTN_RESET_PIN);
+}
+
+void buttonStatePostLoop() {
+  for ( int i = 0; i < 3; i++ ) buttonStatesPrev[i] = buttonStates[i];
+}
+
+void changeState(uint8_t state) {
+  programState = state;
+  longPressMills = 0; // Used for timing long presses
+  stateCounter = 0; // Used for the state within the state
+  timeoutMills = 0; // Used for timeouts and reverting to base state
+}
+
+void stateClock() {
+  // Input handlers
+  if (longPressMills[BTN_RESET] > LONG_PRESS_TIMEOUT) {
+    changeState(STATE_SET_CLOCK);
   }
-  Serial.print(number);
+
+  if (longPressMills[BTN_UP] > LONG_PRESS_TIMEOUT || longPressMills[BTN_DOWN] > LONG_PRESS_TIMEOUT) {
+    changeState(STATE_SET_BIRTHDAY);
+  }
+
+  if (buttonRelease(BTN_UP)) {
+    if (stateCounter != 2) stateCounter = 2;
+    else stateCounter = 0;
+  }
+
+  if (buttonRelease(BTN_DOWN)) {
+    if (stateCounter != 1) stateCounter = 1;
+    else stateCounter = 0;
+  }
+
+  if (anyButtonRelease()) timeoutMills = 0; // Reset the timeout counter
+  if (timeoutMills > CLOCK_STATE_TIMEOUT) {
+    stateCounter = 0;
+  }
+
+  // Display Handers
+  counter = getSecondsTillDeath();
+  switch(stateCounter) {
+    case 0:
+      numberToDisplay(counter); break;
+    case 1:
+      analogWrite(DATE_LED_PIN, 128);
+      dateToDisplay(currentDate.date, currentDate.month, currentDate.year + 1970, 0); break;
+    case 2:
+      analogWrite(TIME_LED_PIN, 128);
+      timeToDsplay(currentHour, currentMinute, currentSecond, 0); break;
+  }
+}
+
+// Note: Birth year is stored as the actual year. e.g. 1995
+//       Clock year is stored as years since 1970. e.g. 25
+void stateSetClock() {
+  analogWrite(SET_LED_PIN, 128);
+
+  // Input Handlers
+  bool timeChanged = false;
+  uint16_t maxDays = daysInMonth(currentDate.month, currentDate.year + 1970);
+  switch(stateCounter) {
+    case 0: // To allow for the first button release
+    case 1: // Day
+      timeChanged = userModifyVariable(currentDate.date, 1, maxDays); break;
+    case 2: // Month
+      timeChanged = userModifyVariable(currentDate.month, 1, 12); break;
+    case 3: // Year
+      timeChanged = userModifyVariable(currentDate.year, 0, 150); break;
+    case 4: // Hour
+      timeChanged = userModifyVariable(currentHour, 0, 23); break;
+    case 5: // Minute
+      timeChanged = userModifyVariable(currentMinute, 0, 59); break;
+    case 6: // Second
+      timeChanged = userModifyVariable(currentSecond, 0, 59); break;
+  }
+
+  maxDays = daysInMonth(currentDate.month, currentDate.year + 1970);
+  if (currentDate.date > maxDays) currentDate.date = maxDays;
+
+  if (timeChanged) {
+    setTime();
+    printTime();
+  }
+
+  if ( buttonRelease(BTN_RESET) ) {
+    stateCounter++;
+    if (stateCounter > 6) stateCounter = 1;
+  }
+
+  if (longPressMills > LONG_PRESS_TIMEOUT) {
+    changeState(STATE_CLOCK);
+  }
+
+  if (anyButtonRelease()) timeoutMills = 0; // Reset the timeout counter
+  if (timeoutMills > SET_STATE_TIMEOUT) {
+    changeState(STATE_CLOCK);
+  }
+
+  if (stateCounter <= 3) {
+    if ( blinkPhase ) analogWrite(DATE_LED_PIN, 128);
+    dateToDisplay(currentDate.date, currentDate.month, currentDate.year + 1970, stateCounter == 0 ? 1 : stateCounter);
+  } else {
+    if ( blinkPhase ) analogWrite(TIME_LED_PIN, 128);
+    timeToDsplay(currentHour, currentMinute, currentSecond, stateCounter - 3);
+  }
+}
+
+// Note: Birth year is stored as the actual year. e.g. 1995
+//       Clock year is stored as years since 1970. e.g. 25
+void stateSetBirthday() {
+  analogWrite(SET_LED_PIN, 128);
+  analogWrite(BIRTHDAY_LED_PIN, 128);
+  bool timeChanged = false;
+  uint16_t maxDays = daysInMonth(birthDate.month, birthDate.year);
+  switch(stateCounter) {
+    case 0: // Day
+      timeChanged = userModifyVariable(birthDate.date, 1, maxDays); break;
+    case 1: // Month
+      timeChanged = userModifyVariable(birthDate.month, 1, 12); break;
+    case 2: // Year
+      timeChanged = userModifyVariable(birthDate.year, 1900, 2100); break;
+  }
+
+  maxDays = daysInMonth(birthDate.month, birthDate.year);
+  if (birthDate.date > maxDays) birthDate.date = maxDays;
+  if (timeChanged) eeprom_write_block((const void*)&birthDate, (void*)0, sizeof(birthDate));
+
+  dateToDisplay(birthDate.date, birthDate.month, birthDate.year, stateCounter + 1);
+
+  if ( buttonRelease(BTN_RESET) ) {
+    stateCounter++;
+    if (stateCounter >= 3) stateCounter = 0;
+  }
+
+  if (longPressMills > LONG_PRESS_TIMEOUT) {
+    changeState(STATE_CLOCK);
+  }
+
+  if (anyButtonRelease()) timeoutMills = 0; // Reset the timeout counter
+  if (timeoutMills > SET_STATE_TIMEOUT) {
+    changeState(STATE_CLOCK);
+  }
 }

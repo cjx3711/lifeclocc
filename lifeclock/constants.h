@@ -27,4 +27,8 @@
 #define BTN_DOWN 1
 #define BTN_RESET 2
 
+#define STATE_CLOCK 0
+#define STATE_SET_CLOCK 1
+#define STATE_SET_BIRTHDAY 2
+
 #endif
