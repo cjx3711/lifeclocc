@@ -169,7 +169,7 @@ long getSecondsTillDeath() {
   return t2 - t1;
 }
 
-void print2digits(int number) {x
+void print2digits(int number) {
   if (number >= 0 && number < 10) {
     Serial.write('0');
   }
@@ -216,8 +216,9 @@ void setTime() {
 
 // ================================= SETUP =====================================
 void initVariables() {
-  longPressMills = 0;
-  longPress2Mills = 0;
+  longPressMills[BTN_RESET] = 0; // Used for timing long presses
+  longPressMills[BTN_UP] = 0; // Used for quickly setting numbers
+  longPressMills[BTN_DOWN] = 0; // Used for quickly setting numbers
   timeoutMills = 0;
 
   currentMinute = 0;
@@ -289,7 +290,7 @@ void preLoop() {
   prevMills = currentMills;
   timeoutMills += millsDelta;
   blinkPhase = (currentMills / BLINK_MS) % 2;
-  
+
   // Reset all the indicatr lights
   digitalWrite(LED_PIN, LOW);
   analogWrite(SET_LED_PIN, 0);
@@ -310,7 +311,9 @@ void buttonStatePostLoop() {
 
 void changeState(uint8_t state) {
   programState = state;
-  longPressMills = 0; // Used for timing long presses
+  longPressMills[BTN_RESET] = 0; // Used for timing long presses
+  longPressMills[BTN_UP] = 0; // Used for quickly setting numbers
+  longPressMills[BTN_DOWN] = 0; // Used for quickly setting numbers
   stateCounter = 0; // Used for the state within the state
   timeoutMills = 0; // Used for timeouts and reverting to base state
 }
@@ -391,7 +394,7 @@ void stateSetClock() {
     if (stateCounter > 6) stateCounter = 1;
   }
 
-  if (longPressMills > LONG_PRESS_TIMEOUT) {
+  if (longPressMills[BTN_RESET] > LONG_PRESS_TIMEOUT) {
     changeState(STATE_CLOCK);
   }
 
@@ -436,7 +439,7 @@ void stateSetBirthday() {
     if (stateCounter >= 3) stateCounter = 0;
   }
 
-  if (longPressMills > LONG_PRESS_TIMEOUT) {
+  if (longPressMills[BTN_RESET] > LONG_PRESS_TIMEOUT) {
     changeState(STATE_CLOCK);
   }
 

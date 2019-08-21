@@ -8,6 +8,8 @@
 #include "datatypes.h"
 #include "constants.h"
 
+extern const bool DEBUG;
+
 extern bool buttonStatesPrev [];
 extern bool buttonStates [];
 
@@ -33,7 +35,7 @@ extern uint16_t currentMinute;
 extern uint16_t currentHour;
 extern uint16_t currentSecond;
 
-extern uint8_t stateSet;
+extern uint8_t programState;
 extern uint8_t stateCounter;
 
 bool validDate(SDate date);
@@ -59,6 +61,7 @@ void setTime();
 // ================================ SETUP ======================================
 void setupBlink();
 void splashScreen();
+void blankScreen();
 void initVariables();
 void initPins();
 
