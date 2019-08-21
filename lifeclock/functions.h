@@ -20,6 +20,12 @@ extern unsigned long currentMills;
 extern unsigned long longPressMills [];
 extern unsigned long timeoutMills;
 extern bool blinkPhase;
+extern bool prevBlinkPhase;
+extern bool blinkPhaseChange;
+
+extern bool repeatPhase;
+extern bool prevRepeatPhase;
+extern bool repeatPhaseChange;
 
 // Working variables
 extern uint8_t digit;

@@ -136,11 +136,11 @@ bool buttonPress(uint8_t btn) {
 
 
 bool userModifyVariable(uint16_t &var, uint16_t min, uint16_t max) {
-  if (buttonPress(BTN_UP)) {
+  if (buttonPress(BTN_UP) || (longPressMills[BTN_UP] > SHORT_PRESS_TIMEOUT && repeatPhaseChange)) {
     if (var == max) var = min;
     else var++;
     return true;
-  } else if(buttonPress(BTN_DOWN)) {
+  } else if(buttonPress(BTN_DOWN)|| (longPressMills[BTN_DOWN] > SHORT_PRESS_TIMEOUT && repeatPhaseChange)) {
     if (var == min) var = max;
     else var--;
     return true;
@@ -228,6 +228,8 @@ void initVariables() {
   programState = 0;
   stateCounter = 0;
 
+  blinkPhase = prevBlinkPhase = blinkPhaseChange = false;
+  repeatPhase = prevRepeatPhase = repeatPhaseChange = false;
 }
 
 void initPins() {
@@ -290,6 +292,11 @@ void preLoop() {
   prevMills = currentMills;
   timeoutMills += millsDelta;
   blinkPhase = (currentMills / BLINK_MS) % 2;
+  blinkPhaseChange = blinkPhase != prevBlinkPhase;
+  prevBlinkPhase = blinkPhase;
+  repeatPhase = (currentMills / REPEAT_MS) % 4;
+  repeatPhaseChange = repeatPhase != prevRepeatPhase;
+  prevRepeatPhase = repeatPhase;
 
   // Reset all the indicatr lights
   digitalWrite(LED_PIN, LOW);

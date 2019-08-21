@@ -1,4 +1,5 @@
 #include "functions.h"
+const bool DEBUG = false;
 
 // Button states for UP, DOWN, RESET
 bool buttonStatesPrev [3] = {false, false, false};
@@ -10,9 +11,15 @@ unsigned long prevMills;
 unsigned long currentMills;
 unsigned long longPressMills [] = {0,0,0};
 unsigned long timeoutMills;
-bool blinkPhase;
 
-const bool DEBUG = false;
+bool blinkPhase;
+bool prevBlinkPhase;
+bool blinkPhaseChange;
+
+bool repeatPhase;
+bool prevRepeatPhase;
+bool repeatPhaseChange;
+
 // Working variables
 uint8_t digit;
 
