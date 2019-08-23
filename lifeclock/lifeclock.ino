@@ -1,5 +1,5 @@
 #include "functions.h"
-const bool DEBUG = false;
+const bool DEBUG = true;
 
 // Button states for UP, DOWN, RESET
 bool buttonStatesPrev [3] = {false, false, false};

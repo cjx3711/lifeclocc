@@ -98,15 +98,15 @@ uint16_t daysInMonth(uint16_t month, uint16_t year) {
 }
 
 void setDigit(uint8_t which, uint8_t number) {
-  digitalWrite(FIRST_PIN + which, LOW);
+  digitalWrite(FIRST_PIN + 9 - which, LOW);
   writeDigitToBus(digit);
-  digitalWrite(FIRST_PIN + which, HIGH);
+  digitalWrite(FIRST_PIN + 9 - which, HIGH);
 }
 
 void setBlank(uint8_t which) {
-  digitalWrite(FIRST_PIN + which, LOW);
+  digitalWrite(FIRST_PIN + 9 - which, LOW);
   writeBlankToBus();
-  digitalWrite(FIRST_PIN + which, HIGH);
+  digitalWrite(FIRST_PIN + 9 - which, HIGH);
 }
 
 void writeBlankToBus() {
@@ -297,6 +297,14 @@ void preLoop() {
   repeatPhase = (currentMills / REPEAT_MS) % 4;
   repeatPhaseChange = repeatPhase != prevRepeatPhase;
   prevRepeatPhase = repeatPhase;
+  if (blinkPhaseChange) {
+    if (DEBUG) {
+      Serial.println(counter);
+      Serial.println(buttonStates[0]);
+      Serial.println(buttonStates[1]);
+      Serial.println(buttonStates[2]);
+    }
+  }
 
   // Reset all the indicatr lights
   digitalWrite(LED_PIN, LOW);
