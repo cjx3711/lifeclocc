@@ -5,7 +5,7 @@ const bool DEBUG = true;
 bool buttonStatesPrev [3] = {false, false, false};
 bool buttonStates [3] = {false, false, false};
 
-long counter;
+unsigned long counter;
 unsigned long millsDelta;
 unsigned long prevMills;
 unsigned long currentMills;
@@ -86,11 +86,11 @@ void loop() {
 
   switch (programState) {
     case STATE_CLOCK:
-      // ----- REGULAR CLOCK STATE -------
+      // ------- REGULAR CLOCK STATE -------
       stateClock();
     break;
     case STATE_SET_CLOCK:
-      // ----- SETTING DATE STATE -----
+      // ------- SETTING DATE STATE -------
       stateSetClock();
     break;
     case STATE_SET_BIRTHDAY:

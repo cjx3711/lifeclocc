@@ -9,7 +9,7 @@ bool validDate(SDate date) {
 
 
 void numberToDisplay(long number) {
-  long workingCounter = number;
+  unsigned long workingCounter = number;
   for ( int i = 0; i < 10; i++ ) {
     digit = workingCounter % 10;
     workingCounter = workingCounter / 10;
@@ -159,13 +159,33 @@ void getTime() {
   }
 }
 
-long getSecondsTillDeath() {
+void printTime2(tmElements_t time) {
+  if (!DEBUG) return;
+  Serial.print("Time = ");
+  print2digits(time.Hour);
+  Serial.write(':');
+  print2digits(time.Minute);
+  Serial.write(':');
+  print2digits(time.Second);
+  Serial.print(", Date (D/M/Y) = ");
+  Serial.print(time.Day);
+  Serial.write('/');
+  Serial.print(time.Month);
+  Serial.write('/');
+  Serial.print(time.Year);
+  Serial.println();
+}
+
+
+unsigned long getSecondsTillDeath() {
   tm2.Day = birthDate.date;
   tm2.Month = birthDate.month;
   tm2.Year = birthDate.year + 80 - 1970;
   tm2.Hour = tm2.Minute = tm2.Second = 0;
   time_t t1 = makeTime(tm);
   time_t t2 = makeTime(tm2);
+  // printTime2(tm);
+  // printTime2(tm2);
   return t2 - t1;
 }
 
@@ -175,6 +195,7 @@ void print2digits(int number) {
   }
   Serial.print(number);
 }
+
 
 void printTime() {
   if (!DEBUG) return;

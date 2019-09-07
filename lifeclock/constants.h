@@ -2,7 +2,7 @@
 #define CONSTANTS_H
 
 #define LED_PIN 6
-#define SET_LED_PIN 41
+#define SET_LED_PIN 42
 #define DATE_LED_PIN 43
 #define TIME_LED_PIN 44
 #define BIRTHDAY_LED_PIN 45
@@ -23,7 +23,7 @@
 
 #define BTN_UP_PIN 7
 #define BTN_DOWN_PIN 5
-#define BTN_RESET_PIN 22
+#define BTN_RESET_PIN 4
 
 #define BTN_UP 0
 #define BTN_DOWN 1

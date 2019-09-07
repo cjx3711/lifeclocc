@@ -13,7 +13,7 @@ extern const bool DEBUG;
 extern bool buttonStatesPrev [];
 extern bool buttonStates [];
 
-extern long counter;
+extern unsigned long counter;
 extern unsigned long millsDelta;
 extern unsigned long prevMills;
 extern unsigned long currentMills;
@@ -58,7 +58,7 @@ bool buttonRelease(uint8_t btn);
 bool buttonPress(uint8_t btn);
 bool userModifyVariable(uint16_t &var, uint16_t min, uint16_t max);
 void getTime();
-long getSecondsTillDeath();
+unsigned long getSecondsTillDeath();
 
 void print2digits(int number);
 void printTime();
