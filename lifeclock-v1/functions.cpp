@@ -7,8 +7,7 @@ bool validDate(SDate date) {
   return true;
 }
 
-
-void numberToDisplay(long number) {
+void numberToDisplay(unsigned long number) {
   unsigned long workingCounter = number;
   for ( int i = 0; i < 10; i++ ) {
     digit = workingCounter % 10;

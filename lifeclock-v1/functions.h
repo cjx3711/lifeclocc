@@ -45,7 +45,7 @@ extern uint8_t programState;
 extern uint8_t stateCounter;
 
 bool validDate(SDate date);
-void numberToDisplay(long number);
+void numberToDisplay(unsigned long number);
 void timeToDsplay(uint16_t h, uint16_t m, uint16_t s, uint8_t blinkWhich);
 void dateToDisplay(uint16_t d, uint16_t m, uint16_t y, uint8_t blinkWhich);
 uint16_t daysInMonth(uint16_t month, uint16_t year);
