@@ -21,6 +21,24 @@ void numberToDisplay(unsigned long number, uint8_t decimal) {
   digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
 }
 
+void lineToDisplay() {
+  digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
+
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
+
+  digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
+}
+
 void splashScreen() {
   digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
 
@@ -70,6 +88,9 @@ void initVariables() {
     NUMBER_CODE[i] = NUMBER_CODE[i] ^ B11111111;
     NUMBER_CODE_DP[i] = NUMBER_CODE_DP[i] ^ B11111111;
   }
+
+  programState = STATE_CLOCK;
+  programSubState = 0;
 }
 void initPins() {
   pinMode(SR_LATCH_PIN, OUTPUT);
@@ -92,11 +113,37 @@ void initPins() {
 
 // ========================== STATES ============================
 
+void changeState(uint8_t state) {
+  programState = state;
+  for ( int i = 0; i < 4; i++ )
+  longPressMills[i] = 0; // Used for timing long presses
+  programSubState = 0; // Used for the state within the state
+  // timeoutMills = 0; // Used for timeouts and reverting to base state
+}
+
+void timerPreLoop() {
+  prevMills = currentMills;
+  currentMills = millis();
+  millsDelta = currentMills - prevMills;
+  secondsToSubtract += millsDelta;
+}
+
 void buttonStatePreLoop() {
   buttonStates[BTN_UP]   = digitalRead(BTN_UP_PIN);
   buttonStates[BTN_DOWN] = digitalRead(BTN_DOWN_PIN);
   buttonStates[BTN_PREV] = digitalRead(BTN_PREV_PIN);
   buttonStates[BTN_NEXT] = digitalRead(BTN_NEXT_PIN);
+
+  // Global (not within states) input handlers
+  digitalWrite(LED_PIN, LOW);
+  for (int i = 0; i < 4; i++) {
+    if (buttonStates[i]) {
+      digitalWrite(LED_PIN, HIGH);
+      longPressMills[i] += millsDelta;
+    } else {
+      longPressMills[i] = 0;
+    }
+  }
 }
 
 void buttonStatePostLoop() {

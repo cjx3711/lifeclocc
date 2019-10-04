@@ -3,13 +3,16 @@
 // Button states for UP, DOWN, RESET
 bool buttonStatesPrev [4] = {false, false, false, false};
 bool buttonStates [4] = {false, false, false, false};
-
+unsigned long longPressMills [] = {0,0,0,0};
 
 unsigned long counter;
 unsigned long millsDelta;
 unsigned long prevMills;
 unsigned long currentMills;
 uint16_t secondsToSubtract;
+
+uint8_t programState;
+uint8_t programSubState;
 
 uint8_t NUMBER_CODE[] = {
   B11111100,
@@ -43,11 +46,11 @@ void setup() {
   setupBlink();
   initVariables();
   setupBlink();
-  delay(1000);
-  splashScreen();
+  // delay(1000);
+  // splashScreen();
   Serial.begin(9600);
-  setupBlink();
-  delay(3000);
+  // setupBlink();
+  // delay(3000);
 
 
   prevMills = currentMills = millis();
@@ -55,15 +58,14 @@ void setup() {
 
 
 void loop() {
-  prevMills = currentMills;
-  currentMills = millis();
-  millsDelta = currentMills - prevMills;
-  secondsToSubtract += millsDelta;
+  timerPreLoop();
+  buttonStatePreLoop();
 
   if ( secondsToSubtract > 1000 ) {
     counter--;
     secondsToSubtract -= 1000;
   }
+
 
   analogWrite(LED_BDAY_PIN, 0);
   analogWrite(LED_CLOCK_PIN, 0);
@@ -76,5 +78,28 @@ void loop() {
 
   int brightness = analogRead(POTIOMETER_PIN) * ((255.0f - MIN_BRIGHTNESS) / 1024.0f) + MIN_BRIGHTNESS;
   analogWrite(DSP_POWER_PIN, brightness);
-  numberToDisplay(counter, 9 - (secondsToSubtract / 100));
+
+  switch(programState) {
+    case STATE_CLOCK:
+      numberToDisplay(counter, 9 - (secondsToSubtract / 100));
+      if (longPressMills[BTN_UP] > 3000 && longPressMills[BTN_DOWN] > 3000) {
+        changeState(STATE_GAME);
+      }
+    break;
+    case STATE_GAME:
+      lineToDisplay();
+      if (longPressMills[BTN_UP] > 3000 && longPressMills[BTN_DOWN] > 3000) {
+        changeState(STATE_CLOCK);
+      }
+    break;
+  }
+
+  Serial.print(longPressMills[0]); Serial.print(' ');
+  Serial.print(longPressMills[1]); Serial.print(' ');
+  Serial.print(longPressMills[2]); Serial.print(' ');
+  Serial.print(longPressMills[3]); Serial.println(' ');
+
+
+
+  buttonStatePostLoop();
 }

@@ -13,23 +13,23 @@
 
 #define LED_BDAY_PIN A0
 #define LED_PREV_PIN A0
-#define LED_CLOCK_PIN A1
-#define LED_NEXT_PIN A1
-#define LED_UP_PIN A2
-#define LED_TIME_PIN A2
-#define LED_DOWN_PIN A3
-#define LED_DATE_PIN A3
+#define LED_CLOCK_PIN A2
+#define LED_NEXT_PIN A2
+#define LED_UP_PIN A3
+#define LED_TIME_PIN A3
+#define LED_DOWN_PIN A1
+#define LED_DATE_PIN A1
 
 #define LED_PIN 13
 
 #define BTN_BDAY_PIN 2
 #define BTN_PREV_PIN 2
-#define BTN_CLOCK_PIN 5
-#define BTN_NEXT_PIN 5
-#define BTN_UP_PIN 3
-#define BTN_TIME_PIN 3
-#define BTN_DOWN_PIN 4
-#define BTN_DATE_PIN 4
+#define BTN_CLOCK_PIN 3
+#define BTN_NEXT_PIN 3
+#define BTN_UP_PIN 4
+#define BTN_TIME_PIN 4
+#define BTN_DOWN_PIN 5
+#define BTN_DATE_PIN 5
 
 #define MIN_BRIGHTNESS 2
 
@@ -52,5 +52,10 @@
 #define CA_DASH B11111101
 #define CA_FULL B00000000
 
+
+#define STATE_CLOCK 0
+#define STATE_SET_CLOCK 1
+#define STATE_SET_BIRTHDAY 2
+#define STATE_GAME 3
 
 #endif
