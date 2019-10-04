@@ -11,19 +11,36 @@
 #define DSP_POWER_PIN 6
 #define POTIOMETER_PIN A6
 
-#define BDAY_LED_PIN A0
-#define CLOCK_LED_PIN A1
-#define TIME_LED_PIN A2
-#define DATE_LED_PIN A3
+#define LED_BDAY_PIN A0
+#define LED_PREV_PIN A0
+#define LED_CLOCK_PIN A1
+#define LED_NEXT_PIN A1
+#define LED_UP_PIN A2
+#define LED_TIME_PIN A2
+#define LED_DOWN_PIN A3
+#define LED_DATE_PIN A3
 
 #define LED_PIN 13
 
-#define BDAY_BTN_PIN 2
-#define CLOCK_BTN_PIN 5
-#define TIME_BTN_PIN 3
-#define DATE_BTN_PIN 4
+#define BTN_BDAY_PIN 2
+#define BTN_PREV_PIN 2
+#define BTN_CLOCK_PIN 5
+#define BTN_NEXT_PIN 5
+#define BTN_UP_PIN 3
+#define BTN_TIME_PIN 3
+#define BTN_DOWN_PIN 4
+#define BTN_DATE_PIN 4
 
 #define MIN_BRIGHTNESS 2
+
+#define BTN_UP 0
+#define BTN_TIME 0
+#define BTN_DOWN 1
+#define BTN_DATE 1
+#define BTN_PREV 2
+#define BTN_BDAY 2
+#define BTN_NEXT 3
+#define BTN_CLOCK 3
 
 // Patterns for common anode 7-segment displays
 #define CA_L B11100011

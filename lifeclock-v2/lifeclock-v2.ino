@@ -1,5 +1,10 @@
 #include "functions.h"
 
+// Button states for UP, DOWN, RESET
+bool buttonStatesPrev [4] = {false, false, false, false};
+bool buttonStates [4] = {false, false, false, false};
+
+
 unsigned long counter;
 unsigned long millsDelta;
 unsigned long prevMills;
@@ -60,14 +65,14 @@ void loop() {
     secondsToSubtract -= 1000;
   }
 
-  analogWrite(BDAY_LED_PIN, 0);
-  analogWrite(CLOCK_LED_PIN, 0);
-  analogWrite(TIME_LED_PIN, 0);
-  analogWrite(DATE_LED_PIN, 0);
-  if (digitalRead(BDAY_BTN_PIN)) analogWrite(BDAY_LED_PIN, 255);
-  if (digitalRead(CLOCK_BTN_PIN)) analogWrite(CLOCK_LED_PIN, 255);
-  if (digitalRead(TIME_BTN_PIN)) analogWrite(TIME_LED_PIN, 255);
-  if (digitalRead(DATE_BTN_PIN)) analogWrite(DATE_LED_PIN, 255);
+  analogWrite(LED_BDAY_PIN, 0);
+  analogWrite(LED_CLOCK_PIN, 0);
+  analogWrite(LED_TIME_PIN, 0);
+  analogWrite(LED_DATE_PIN, 0);
+  if (digitalRead(BTN_BDAY_PIN)) analogWrite(LED_BDAY_PIN, 255);
+  if (digitalRead(BTN_CLOCK_PIN)) analogWrite(LED_CLOCK_PIN, 255);
+  if (digitalRead(BTN_TIME_PIN)) analogWrite(LED_TIME_PIN, 255);
+  if (digitalRead(BTN_DATE_PIN)) analogWrite(LED_DATE_PIN, 255);
 
   int brightness = analogRead(POTIOMETER_PIN) * ((255.0f - MIN_BRIGHTNESS) / 1024.0f) + MIN_BRIGHTNESS;
   analogWrite(DSP_POWER_PIN, brightness);

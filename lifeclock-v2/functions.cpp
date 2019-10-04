@@ -49,16 +49,16 @@ void testScreen() {
 // ========================== SETUP ============================
 void setupBlink() {
   digitalWrite(LED_PIN, HIGH);
-  digitalWrite(BDAY_LED_PIN, HIGH);
-  digitalWrite(CLOCK_LED_PIN, HIGH);
-  digitalWrite(TIME_LED_PIN, HIGH);
-  digitalWrite(DATE_LED_PIN, HIGH);
+  digitalWrite(LED_BDAY_PIN, HIGH);
+  digitalWrite(LED_CLOCK_PIN, HIGH);
+  digitalWrite(LED_TIME_PIN, HIGH);
+  digitalWrite(LED_DATE_PIN, HIGH);
   delay(100);
   digitalWrite(LED_PIN, LOW);
-  digitalWrite(BDAY_LED_PIN, LOW);
-  digitalWrite(CLOCK_LED_PIN, LOW);
-  digitalWrite(TIME_LED_PIN, LOW);
-  digitalWrite(DATE_LED_PIN, LOW);
+  digitalWrite(LED_BDAY_PIN, LOW);
+  digitalWrite(LED_CLOCK_PIN, LOW);
+  digitalWrite(LED_TIME_PIN, LOW);
+  digitalWrite(LED_DATE_PIN, LOW);
   delay(150);
 }
 
@@ -76,18 +76,29 @@ void initPins() {
   pinMode(SR_CLOCK_PIN, OUTPUT);
   pinMode(SR_DATA_PIN, OUTPUT);
 
-  pinMode(BDAY_LED_PIN, OUTPUT);
-  pinMode(CLOCK_LED_PIN, OUTPUT);
-  pinMode(TIME_LED_PIN, OUTPUT);
-  pinMode(DATE_LED_PIN, OUTPUT);
+  pinMode(LED_BDAY_PIN, OUTPUT);
+  pinMode(LED_CLOCK_PIN, OUTPUT);
+  pinMode(LED_TIME_PIN, OUTPUT);
+  pinMode(LED_DATE_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
 
-  pinMode(BDAY_BTN_PIN, INPUT);
-  pinMode(CLOCK_BTN_PIN, INPUT);
-  pinMode(TIME_BTN_PIN, INPUT);
-  pinMode(DATE_BTN_PIN, INPUT);
+  pinMode(BTN_BDAY_PIN, INPUT);
+  pinMode(BTN_CLOCK_PIN, INPUT);
+  pinMode(BTN_TIME_PIN, INPUT);
+  pinMode(BTN_DATE_PIN, INPUT);
 
   analogWrite(DSP_POWER_PIN, 128);
 }
 
 // ========================== STATES ============================
+
+void buttonStatePreLoop() {
+  buttonStates[BTN_UP]   = digitalRead(BTN_UP_PIN);
+  buttonStates[BTN_DOWN] = digitalRead(BTN_DOWN_PIN);
+  buttonStates[BTN_PREV] = digitalRead(BTN_PREV_PIN);
+  buttonStates[BTN_NEXT] = digitalRead(BTN_NEXT_PIN);
+}
+
+void buttonStatePostLoop() {
+  for ( int i = 0; i < 4; i++ ) buttonStatesPrev[i] = buttonStates[i];
+}
