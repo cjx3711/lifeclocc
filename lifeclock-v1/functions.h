@@ -12,12 +12,12 @@ extern const bool DEBUG;
 
 extern bool buttonStatesPrev [];
 extern bool buttonStates [];
+extern unsigned long longPressMills [];
 
 extern unsigned long counter;
 extern unsigned long millsDelta;
 extern unsigned long prevMills;
 extern unsigned long currentMills;
-extern unsigned long longPressMills [];
 extern unsigned long timeoutMills;
 extern bool blinkPhase;
 extern bool prevBlinkPhase;
@@ -42,7 +42,7 @@ extern uint16_t currentHour;
 extern uint16_t currentSecond;
 
 extern uint8_t programState;
-extern uint8_t stateCounter;
+extern uint8_t programSubState;
 
 bool validDate(SDate date);
 void numberToDisplay(unsigned long number);

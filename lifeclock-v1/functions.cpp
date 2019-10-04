@@ -246,7 +246,7 @@ void initVariables() {
   currentSecond = 0;
 
   programState = 0;
-  stateCounter = 0;
+  programSubState = 0;
 
   blinkPhase = prevBlinkPhase = blinkPhaseChange = false;
   repeatPhase = prevRepeatPhase = repeatPhaseChange = false;
@@ -338,6 +338,16 @@ void buttonStatePreLoop() {
   buttonStates[BTN_UP] = digitalRead(BTN_UP_PIN);
   buttonStates[BTN_DOWN] = digitalRead(BTN_DOWN_PIN);
   buttonStates[BTN_RESET] = digitalRead(BTN_RESET_PIN);
+
+  // Global (not within states) input handlers
+  for (int i = 0; i < 3; i++) {
+    if (buttonStates[i]) {
+      digitalWrite(LED_PIN, HIGH);
+      longPressMills[i] += millsDelta;
+    } else {
+      longPressMills[i] = 0;
+    }
+  }
 }
 
 void buttonStatePostLoop() {
@@ -349,7 +359,7 @@ void changeState(uint8_t state) {
   longPressMills[BTN_RESET] = 0; // Used for timing long presses
   longPressMills[BTN_UP] = 0; // Used for quickly setting numbers
   longPressMills[BTN_DOWN] = 0; // Used for quickly setting numbers
-  stateCounter = 0; // Used for the state within the state
+  programSubState = 0; // Used for the state within the state
   timeoutMills = 0; // Used for timeouts and reverting to base state
 }
 
@@ -364,23 +374,23 @@ void stateClock() {
   }
 
   if (buttonRelease(BTN_UP)) {
-    if (stateCounter != 2) stateCounter = 2;
-    else stateCounter = 0;
+    if (programSubState != 2) programSubState = 2;
+    else programSubState = 0;
   }
 
   if (buttonRelease(BTN_DOWN)) {
-    if (stateCounter != 1) stateCounter = 1;
-    else stateCounter = 0;
+    if (programSubState != 1) programSubState = 1;
+    else programSubState = 0;
   }
 
   if (anyButtonRelease()) timeoutMills = 0; // Reset the timeout counter
   if (timeoutMills > CLOCK_STATE_TIMEOUT) {
-    stateCounter = 0;
+    programSubState = 0;
   }
 
   // Display Handers
   counter = getSecondsTillDeath();
-  switch(stateCounter) {
+  switch(programSubState) {
     case 0:
       numberToDisplay(counter); break;
     case 1:
@@ -400,7 +410,7 @@ void stateSetClock() {
   // Input Handlers
   bool timeChanged = false;
   uint16_t maxDays = daysInMonth(currentDate.month, currentDate.year + 1970);
-  switch(stateCounter) {
+  switch(programSubState) {
     case 0: // To allow for the first button release
     case 1: // Day
       timeChanged = userModifyVariable(currentDate.date, 1, maxDays); break;
@@ -425,8 +435,8 @@ void stateSetClock() {
   }
 
   if ( buttonRelease(BTN_RESET) ) {
-    stateCounter++;
-    if (stateCounter > 6) stateCounter = 1;
+    programSubState++;
+    if (programSubState > 6) programSubState = 1;
   }
 
   if (longPressMills[BTN_RESET] > LONG_PRESS_TIMEOUT) {
@@ -438,12 +448,12 @@ void stateSetClock() {
     changeState(STATE_CLOCK);
   }
 
-  if (stateCounter <= 3) {
+  if (programSubState <= 3) {
     if ( blinkPhase ) analogWrite(DATE_LED_PIN, 128);
-    dateToDisplay(currentDate.date, currentDate.month, currentDate.year + 1970, stateCounter == 0 ? 1 : stateCounter);
+    dateToDisplay(currentDate.date, currentDate.month, currentDate.year + 1970, programSubState == 0 ? 1 : programSubState);
   } else {
     if ( blinkPhase ) analogWrite(TIME_LED_PIN, 128);
-    timeToDsplay(currentHour, currentMinute, currentSecond, stateCounter - 3);
+    timeToDsplay(currentHour, currentMinute, currentSecond, programSubState - 3);
   }
 }
 
@@ -454,7 +464,7 @@ void stateSetBirthday() {
   analogWrite(BIRTHDAY_LED_PIN, 128);
   bool timeChanged = false;
   uint16_t maxDays = daysInMonth(birthDate.month, birthDate.year);
-  switch(stateCounter) {
+  switch(programSubState) {
     case 0: // Day
       timeChanged = userModifyVariable(birthDate.date, 1, maxDays); break;
     case 1: // Month
@@ -467,11 +477,11 @@ void stateSetBirthday() {
   if (birthDate.date > maxDays) birthDate.date = maxDays;
   if (timeChanged) eeprom_write_block((const void*)&birthDate, (void*)0, sizeof(birthDate));
 
-  dateToDisplay(birthDate.date, birthDate.month, birthDate.year, stateCounter + 1);
+  dateToDisplay(birthDate.date, birthDate.month, birthDate.year, programSubState + 1);
 
   if ( buttonRelease(BTN_RESET) ) {
-    stateCounter++;
-    if (stateCounter >= 3) stateCounter = 0;
+    programSubState++;
+    if (programSubState >= 3) programSubState = 0;
   }
 
   if (longPressMills[BTN_RESET] > LONG_PRESS_TIMEOUT) {
