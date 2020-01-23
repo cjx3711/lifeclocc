@@ -65,6 +65,7 @@ void writeDigitToBus(uint8_t d);
 
 void splashScreen();
 void blankScreen();
+void debugScreen();
 
 // =============================== DATE HELPERS ============================
 bool validDate(SDate date);
@@ -91,5 +92,6 @@ void changeState(uint8_t state);
 void stateClock();
 void stateSetClock();
 void stateSetBirthday();
+void stateDebug();
 
 #endif

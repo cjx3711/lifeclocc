@@ -147,10 +147,14 @@ void blankScreen() {
 }
 
 void splashScreen() {
+  // Splash screen is just the debug screen
+  debugScreen();
+}
+
+void debugScreen() {
   for (int i = 0; i < 10; i++) digitalWrite(FIRST_PIN + i, LOW);
   writeDigitToBus(8);
   for (int i = 0; i < 10; i++) digitalWrite(FIRST_PIN + i, HIGH);
-
 }
 
 
@@ -388,6 +392,10 @@ void changeState(uint8_t state) {
 }
 
 void stateClock() {
+  if (longPressMills[BTN_UP] > SHORT_PRESS_TIMEOUT && longPressMills[BTN_DOWN] > SHORT_PRESS_TIMEOUT && longPressMills[BTN_RESET] > SHORT_PRESS_TIMEOUT) {
+    changeState(STATE_DEBUG);
+  }
+
   // Input handlers
   if (longPressMills[BTN_RESET] > LONG_PRESS_TIMEOUT) {
     changeState(STATE_SET_CLOCK);
@@ -426,6 +434,19 @@ void stateClock() {
   }
 }
 
+void stateDebug() {
+    debugScreen();
+    digitalWrite(LED_PIN, HIGH);
+    analogWrite(SET_LED_PIN, 128);
+    analogWrite(DATE_LED_PIN, 128);
+    analogWrite(TIME_LED_PIN, 128);
+    analogWrite(BIRTHDAY_LED_PIN, 128);
+
+    // Input Handlers
+    if (anyButtonRelease()) {
+      changeState(STATE_CLOCK);
+    }
+}
 // Note: Birth year is stored as the actual year. e.g. 1995
 //       Clock year is stored as years since 1970. e.g. 25
 void stateSetClock() {

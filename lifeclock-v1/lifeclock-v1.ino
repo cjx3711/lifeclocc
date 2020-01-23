@@ -63,15 +63,19 @@ void loop() {
     case STATE_CLOCK:
       // ------- REGULAR CLOCK STATE -------
       stateClock();
-    break;
+      break;
     case STATE_SET_CLOCK:
       // ------- SETTING DATE STATE -------
       stateSetClock();
-    break;
+      break;
     case STATE_SET_BIRTHDAY:
       // ------- SETTING BIRTHDAY STATE --------
       stateSetBirthday();
-    break;
+      break;
+    case STATE_DEBUG:
+      // ------- DEBUG STATE ---------
+      stateDebug();
+      break;
   }
 
   buttonStatePostLoop();
