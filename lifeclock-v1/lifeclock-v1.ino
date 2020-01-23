@@ -48,25 +48,10 @@ void setup() {
   splashScreen();
   setupBlink();
 
-  // Read or initialise birthday
-  eeprom_read_block((void*)&birthDate, (void*)0, sizeof(birthDate));
-
-  if (!validDate(birthDate)) {
-    birthDate.date = 1;
-    birthDate.month = 1;
-    birthDate.year = 1990;
-    eeprom_write_block((const void*)&birthDate, (void*)0, sizeof(birthDate));
-    if (DEBUG) Serial.println("Init Birthday: ");
-  } else {
-    if (DEBUG) {
-      Serial.print("Read Birthday: "); Serial.print(birthDate.date);
-      Serial.print(" "); Serial.print(birthDate.month);
-      Serial.print(" "); Serial.println(birthDate.year);
-    }
-  }
+  readBirthday();
 
   setupBlink();
-  delay(200);
+  delay(100);
 }
 
 void loop() {

@@ -44,32 +44,42 @@ extern uint16_t currentSecond;
 extern uint8_t programState;
 extern uint8_t programSubState;
 
-bool validDate(SDate date);
-void numberToDisplay(unsigned long number);
-void timeToDsplay(uint16_t h, uint16_t m, uint16_t s, uint8_t blinkWhich);
-void dateToDisplay(uint16_t d, uint16_t m, uint16_t y, uint8_t blinkWhich);
-uint16_t daysInMonth(uint16_t month, uint16_t year);
-void setDigit(uint8_t which, uint8_t number);
-void setBlank(uint8_t which);
-void writeBlankToBus();
-void writeDigitToBus(uint8_t d);
+
+
+// =============================== INPUT HELPERS ============================
 bool anyButtonRelease();
 bool buttonRelease(uint8_t btn);
 bool buttonPress(uint8_t btn);
 bool userModifyVariable(uint16_t &var, uint16_t min, uint16_t max);
-void getTime();
-unsigned long getSecondsTillDeath();
-
 void print2digits(int number);
+
+// =============================== DISPLAY HELPERS ============================
+void numberToDisplay(unsigned long number);
+void timeToDsplay(uint16_t h, uint16_t m, uint16_t s, uint8_t blinkWhich);
+void dateToDisplay(uint16_t d, uint16_t m, uint16_t y, uint8_t blinkWhich);
+
+void setDigit(uint8_t which, uint8_t number);
+void setBlank(uint8_t which);
+void writeBlankToBus();
+void writeDigitToBus(uint8_t d);
+
+void splashScreen();
+void blankScreen();
+
+// =============================== DATE HELPERS ============================
+bool validDate(SDate date);
+uint16_t daysInMonth(uint16_t month, uint16_t year);
 void printTime();
+void printTime(tmElements_t time);
+void getTime();
 void setTime();
+unsigned long getSecondsTillDeath();
 
 // ================================ SETUP ======================================
 void setupBlink();
-void splashScreen();
-void blankScreen();
 void initVariables();
 void initPins();
+void readBirthday();
 
 // ================================ STATES =====================================
 void preLoop();

@@ -1,12 +1,40 @@
 #include "functions.h"
 
-bool validDate(SDate date) {
-  if (date.date < 1 || date.date > 31) return false;
-  if (date.month < 1 || date.month > 12) return false;
-  if (date.year < 1900 || date.year > 2100) return false;
-  return true;
+
+// =============================== INPUT HELPERS ============================
+
+bool anyButtonRelease() {
+  return buttonRelease(BTN_UP) || buttonRelease(BTN_DOWN) || buttonRelease(BTN_RESET);
+}
+bool buttonRelease(uint8_t btn) {
+  return !buttonStates[btn] && buttonStatesPrev[btn];
 }
 
+bool buttonPress(uint8_t btn) {
+  return buttonStates[btn] && !buttonStatesPrev[btn];
+}
+
+bool userModifyVariable(uint16_t &var, uint16_t min, uint16_t max) {
+  if (buttonPress(BTN_UP) || (longPressMills[BTN_UP] > SHORT_PRESS_TIMEOUT && repeatPhaseChange)) {
+    if (var == max) var = min;
+    else var++;
+    return true;
+  } else if(buttonPress(BTN_DOWN)|| (longPressMills[BTN_DOWN] > SHORT_PRESS_TIMEOUT && repeatPhaseChange)) {
+    if (var == min) var = max;
+    else var--;
+    return true;
+  }
+  return false;
+}
+
+void print2digits(int number) {
+  if (number >= 0 && number < 10) {
+    Serial.write('0');
+  }
+  Serial.print(number);
+}
+
+// =============================== DISPLAY HELPERS ============================
 void numberToDisplay(unsigned long number) {
   unsigned long workingCounter = number;
   for ( int i = 0; i < 10; i++ ) {
@@ -86,16 +114,6 @@ void dateToDisplay(uint16_t d, uint16_t m, uint16_t y, uint8_t blinkWhich) {
   }
 }
 
-uint16_t daysInMonth(uint16_t month, uint16_t year) {
-  bool leapYear = year % 4 == 0;
-  uint16_t months [12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-  if (leapYear && month == 2) {
-    return 29;
-  } else {
-    return months[month-1];
-  }
-}
-
 void setDigit(uint8_t which, uint8_t number) {
   digitalWrite(FIRST_PIN + 9 - which, LOW);
   writeDigitToBus(digit);
@@ -122,79 +140,38 @@ void writeDigitToBus(uint8_t d) {
   digitalWrite(BCDD_PIN, (d >> 3) & 1);
 }
 
-bool anyButtonRelease() {
-  return buttonRelease(BTN_UP) || buttonRelease(BTN_DOWN) || buttonRelease(BTN_RESET);
-}
-bool buttonRelease(uint8_t btn) {
-  return !buttonStates[btn] && buttonStatesPrev[btn];
-}
-
-bool buttonPress(uint8_t btn) {
-  return buttonStates[btn] && !buttonStatesPrev[btn];
+void blankScreen() {
+  for (int i = 0; i < 10; i++) digitalWrite(FIRST_PIN + i, LOW);
+  writeBlankToBus();
+  for (int i = 0; i < 10; i++) digitalWrite(FIRST_PIN + i, HIGH);
 }
 
+void splashScreen() {
+  for (int i = 0; i < 10; i++) digitalWrite(FIRST_PIN + i, LOW);
+  writeDigitToBus(8);
+  for (int i = 0; i < 10; i++) digitalWrite(FIRST_PIN + i, HIGH);
 
-bool userModifyVariable(uint16_t &var, uint16_t min, uint16_t max) {
-  if (buttonPress(BTN_UP) || (longPressMills[BTN_UP] > SHORT_PRESS_TIMEOUT && repeatPhaseChange)) {
-    if (var == max) var = min;
-    else var++;
-    return true;
-  } else if(buttonPress(BTN_DOWN)|| (longPressMills[BTN_DOWN] > SHORT_PRESS_TIMEOUT && repeatPhaseChange)) {
-    if (var == min) var = max;
-    else var--;
-    return true;
-  }
-  return false;
 }
 
-void getTime() {
-  if (RTC.read(tm)) {
-    currentDate.date = tm.Day;
-    currentDate.month = tm.Month;
-    currentDate.year = tm.Year;
-    currentHour = tm.Hour;
-    currentMinute = tm.Minute;
-    currentSecond = tm.Second;
+
+// =============================== DATE HELPERS ============================
+
+bool validDate(SDate date) {
+  if (date.date < 1 || date.date > 31) return false;
+  if (date.month < 1 || date.month > 12) return false;
+  if (date.year < 1900 || date.year > 2100) return false;
+  return true;
+}
+
+uint16_t daysInMonth(uint16_t month, uint16_t year) {
+  bool leapYear = year % 4 == 0;
+  uint16_t months [12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+  if (leapYear && month == 2) {
+    return 29;
+  } else {
+    return months[month-1];
   }
 }
-
-void printTime2(tmElements_t time) {
-  if (!DEBUG) return;
-  Serial.print("Time = ");
-  print2digits(time.Hour);
-  Serial.write(':');
-  print2digits(time.Minute);
-  Serial.write(':');
-  print2digits(time.Second);
-  Serial.print(", Date (D/M/Y) = ");
-  Serial.print(time.Day);
-  Serial.write('/');
-  Serial.print(time.Month);
-  Serial.write('/');
-  Serial.print(time.Year);
-  Serial.println();
-}
-
-
-unsigned long getSecondsTillDeath() {
-  tm2.Day = birthDate.date;
-  tm2.Month = birthDate.month;
-  tm2.Year = birthDate.year + 80 - 1970;
-  tm2.Hour = tm2.Minute = tm2.Second = 0;
-  time_t t1 = makeTime(tm);
-  time_t t2 = makeTime(tm2);
-  // printTime2(tm);
-  // printTime2(tm2);
-  return t2 - t1;
-}
-
-void print2digits(int number) {
-  if (number >= 0 && number < 10) {
-    Serial.write('0');
-  }
-  Serial.print(number);
-}
-
 
 void printTime() {
   if (!DEBUG) return;
@@ -224,6 +201,34 @@ void printTime() {
   }
 }
 
+void printTime(tmElements_t time) {
+  if (!DEBUG) return;
+  Serial.print("Time = ");
+  print2digits(time.Hour);
+  Serial.write(':');
+  print2digits(time.Minute);
+  Serial.write(':');
+  print2digits(time.Second);
+  Serial.print(", Date (D/M/Y) = ");
+  Serial.print(time.Day);
+  Serial.write('/');
+  Serial.print(time.Month);
+  Serial.write('/');
+  Serial.print(time.Year);
+  Serial.println();
+}
+
+void getTime() {
+  if (RTC.read(tm)) {
+    currentDate.date = tm.Day;
+    currentDate.month = tm.Month;
+    currentDate.year = tm.Year;
+    currentHour = tm.Hour;
+    currentMinute = tm.Minute;
+    currentSecond = tm.Second;
+  }
+}
+
 void setTime() {
   tm.Day = currentDate.date;
   tm.Month = currentDate.month;
@@ -234,7 +239,35 @@ void setTime() {
   RTC.write(tm);
 }
 
+unsigned long getSecondsTillDeath() {
+  tm2.Day = birthDate.date;
+  tm2.Month = birthDate.month;
+  tm2.Year = birthDate.year + 80 - 1970;
+  tm2.Hour = tm2.Minute = tm2.Second = 0;
+  time_t t1 = makeTime(tm);
+  time_t t2 = makeTime(tm2);
+  // printTime(tm);
+  // printTime(tm2);
+  return t2 - t1;
+}
+
 // ================================= SETUP =====================================
+void setupBlink() {
+  digitalWrite(LED_PIN, HIGH);
+  analogWrite(SET_LED_PIN, 128);
+  analogWrite(DATE_LED_PIN, 128);
+  analogWrite(TIME_LED_PIN, 128);
+  analogWrite(BIRTHDAY_LED_PIN, 128);
+  delay(100);
+  digitalWrite(LED_PIN, LOW);
+  analogWrite(SET_LED_PIN, 0);
+  analogWrite(DATE_LED_PIN, 0);
+  analogWrite(TIME_LED_PIN, 0);
+  analogWrite(BIRTHDAY_LED_PIN, 0);
+  delay(300);
+}
+
+
 void initVariables() {
   longPressMills[BTN_RESET] = 0; // Used for timing long presses
   longPressMills[BTN_UP] = 0; // Used for quickly setting numbers
@@ -275,34 +308,25 @@ void initPins() {
   for (int i = 0; i < 10; i++) pinMode(FIRST_PIN + i, OUTPUT);
 }
 
-void setupBlink() {
-  digitalWrite(LED_PIN, HIGH);
-  analogWrite(SET_LED_PIN, 128);
-  analogWrite(DATE_LED_PIN, 128);
-  analogWrite(TIME_LED_PIN, 128);
-  analogWrite(BIRTHDAY_LED_PIN, 128);
-  delay(100);
-  digitalWrite(LED_PIN, LOW);
-  analogWrite(SET_LED_PIN, 0);
-  analogWrite(DATE_LED_PIN, 0);
-  analogWrite(TIME_LED_PIN, 0);
-  analogWrite(BIRTHDAY_LED_PIN, 0);
-  delay(300);
+// Read or initialise birthday
+void readBirthday() {
+  eeprom_read_block((void*)&birthDate, (void*)0, sizeof(birthDate));
+
+  if (!validDate(birthDate)) {
+    birthDate.date = 1;
+    birthDate.month = 1;
+    birthDate.year = 1990;
+    eeprom_write_block((const void*)&birthDate, (void*)0, sizeof(birthDate));
+    if (DEBUG) Serial.println("Init Birthday: ");
+  } else {
+    if (DEBUG) {
+      Serial.print("Read Birthday: "); Serial.print(birthDate.date);
+      Serial.print(" "); Serial.print(birthDate.month);
+      Serial.print(" "); Serial.println(birthDate.year);
+    }
+  }
 }
 
-
-void blankScreen() {
-  for (int i = 0; i < 10; i++) digitalWrite(FIRST_PIN + i, LOW);
-  writeBlankToBus();
-  for (int i = 0; i < 10; i++) digitalWrite(FIRST_PIN + i, HIGH);
-}
-
-void splashScreen() {
-  for (int i = 0; i < 10; i++) digitalWrite(FIRST_PIN + i, LOW);
-  writeDigitToBus(8);
-  for (int i = 0; i < 10; i++) digitalWrite(FIRST_PIN + i, HIGH);
-
-}
 
 // ================================ STATES =====================================
 
