@@ -17,6 +17,8 @@ extern unsigned long counter;
 extern unsigned long millsDelta;
 extern unsigned long prevMills;
 extern unsigned long currentMills;
+extern unsigned long timeoutMills;
+
 extern uint16_t secondsToSubtract;
 
 extern uint8_t programState;
@@ -25,6 +27,11 @@ extern uint8_t programSubState;
 
 void numberToDisplay(unsigned long number, uint8_t);
 void lineToDisplay();
+
+bool anyButtonRelease();
+bool buttonRelease(uint8_t btn);
+bool buttonPress(uint8_t btn);
+
 // ========================== SETUP ============================
 void setupBlink();
 void splashScreen();

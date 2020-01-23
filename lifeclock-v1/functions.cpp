@@ -307,9 +307,9 @@ void splashScreen() {
 // ================================ STATES =====================================
 
 void preLoop() {
+  prevMills = currentMills;
   currentMills = millis();
   millsDelta = currentMills - prevMills;
-  prevMills = currentMills;
   timeoutMills += millsDelta;
   blinkPhase = (currentMills / BLINK_MS) % 2;
   blinkPhaseChange = blinkPhase != prevBlinkPhase;

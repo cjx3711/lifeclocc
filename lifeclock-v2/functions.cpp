@@ -39,6 +39,19 @@ void lineToDisplay() {
   digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
 }
 
+bool anyButtonRelease() {
+  return buttonRelease(BTN_UP) || buttonRelease(BTN_DOWN) || buttonRelease(BTN_PREV) || buttonRelease(BTN_NEXT);
+}
+bool buttonRelease(uint8_t btn) {
+  return !buttonStates[btn] && buttonStatesPrev[btn];
+}
+
+bool buttonPress(uint8_t btn) {
+  return buttonStates[btn] && !buttonStatesPrev[btn];
+}
+
+// ========================== SETUP ============================
+
 void splashScreen() {
   digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
 
@@ -89,6 +102,8 @@ void initVariables() {
     NUMBER_CODE_DP[i] = NUMBER_CODE_DP[i] ^ B11111111;
   }
 
+  timeoutMills = 0;
+
   programState = STATE_CLOCK;
   programSubState = 0;
 }
@@ -115,16 +130,17 @@ void initPins() {
 
 void changeState(uint8_t state) {
   programState = state;
-  for ( int i = 0; i < 4; i++ )
-  longPressMills[i] = 0; // Used for timing long presses
+  for ( int i = 0; i < 4; i++ ) longPressMills[i] = 0; // Used for timing long presses
   programSubState = 0; // Used for the state within the state
-  // timeoutMills = 0; // Used for timeouts and reverting to base state
+  timeoutMills = 0; // Used for timeouts and reverting to base state
 }
 
 void timerPreLoop() {
   prevMills = currentMills;
   currentMills = millis();
   millsDelta = currentMills - prevMills;
+  timeoutMills += millsDelta;
+
   secondsToSubtract += millsDelta;
 }
 

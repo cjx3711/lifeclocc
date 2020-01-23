@@ -9,6 +9,8 @@ unsigned long counter;
 unsigned long millsDelta;
 unsigned long prevMills;
 unsigned long currentMills;
+unsigned long timeoutMills;
+
 uint16_t secondsToSubtract;
 
 uint8_t programState;
@@ -66,11 +68,11 @@ void loop() {
     secondsToSubtract -= 1000;
   }
 
-
   analogWrite(LED_BDAY_PIN, 0);
   analogWrite(LED_CLOCK_PIN, 0);
   analogWrite(LED_TIME_PIN, 0);
   analogWrite(LED_DATE_PIN, 0);
+
   if (digitalRead(BTN_BDAY_PIN)) analogWrite(LED_BDAY_PIN, 255);
   if (digitalRead(BTN_CLOCK_PIN)) analogWrite(LED_CLOCK_PIN, 255);
   if (digitalRead(BTN_TIME_PIN)) analogWrite(LED_TIME_PIN, 255);
@@ -81,10 +83,63 @@ void loop() {
 
   switch(programState) {
     case STATE_CLOCK:
-      numberToDisplay(counter, 9 - (secondsToSubtract / 100));
       if (longPressMills[BTN_UP] > 3000 && longPressMills[BTN_DOWN] > 3000) {
         changeState(STATE_GAME);
       }
+
+      if (longPressMills[BTN_BDAY] > 3000) {
+        changeState(STATE_SET_BIRTHDAY);
+      }
+
+      if (longPressMills[BTN_CLOCK] > 3000) {
+        changeState(STATE_SET_CLOCK);
+      }
+
+      if (buttonRelease(BTN_TIME)) {
+        if (programSubState != 2) programSubState = 2;
+        else programSubState = 0;
+      }
+
+      if (buttonRelease(BTN_DATE)) {
+        if (programSubState != 1) programSubState = 1;
+        else programSubState = 0;
+      }
+      numberToDisplay(counter, 9 - (secondsToSubtract / 100));
+
+      switch(programSubState) {
+        case 0:
+          break;
+        case 1:
+          digitalWrite(LED_DATE_PIN, HIGH);
+          break;
+        case 2:
+          digitalWrite(LED_TIME_PIN, HIGH);
+          break;
+      }
+
+
+    break;
+    case STATE_SET_CLOCK:
+      digitalWrite(LED_CLOCK_PIN, HIGH);
+      lineToDisplay();
+
+      if (longPressMills[BTN_BDAY] > 3000 || longPressMills[BTN_CLOCK] > 3000) {
+        changeState(STATE_CLOCK);
+      }
+
+      if (anyButtonRelease()) timeoutMills = 0;
+      if (timeoutMills > 15000) changeState(STATE_CLOCK);
+    break;
+    case STATE_SET_BIRTHDAY:
+      digitalWrite(LED_BDAY_PIN, HIGH);
+      lineToDisplay();
+
+      if (longPressMills[BTN_BDAY] > 3000 || longPressMills[BTN_CLOCK] > 3000) {
+        changeState(STATE_CLOCK);
+      }
+
+      if (anyButtonRelease()) timeoutMills = 0;
+      if (timeoutMills > 15000) changeState(STATE_CLOCK);
     break;
     case STATE_GAME:
       lineToDisplay();
