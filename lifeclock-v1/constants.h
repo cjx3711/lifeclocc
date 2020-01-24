@@ -32,6 +32,6 @@
 #define STATE_CLOCK 0
 #define STATE_SET_CLOCK 1
 #define STATE_SET_BIRTHDAY 2
-#define STATE_DEBUG 2
+#define STATE_DEBUG 3
 
 #endif

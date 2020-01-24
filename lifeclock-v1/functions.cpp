@@ -6,6 +6,10 @@
 bool anyButtonRelease() {
   return buttonRelease(BTN_UP) || buttonRelease(BTN_DOWN) || buttonRelease(BTN_RESET);
 }
+bool anyButtonPress() {
+  return buttonPress(BTN_UP) || buttonPress(BTN_DOWN) || buttonPress(BTN_RESET);
+}
+
 bool buttonRelease(uint8_t btn) {
   return !buttonStates[btn] && buttonStatesPrev[btn];
 }
@@ -435,16 +439,25 @@ void stateClock() {
 }
 
 void stateDebug() {
-    debugScreen();
-    digitalWrite(LED_PIN, HIGH);
-    analogWrite(SET_LED_PIN, 128);
-    analogWrite(DATE_LED_PIN, 128);
-    analogWrite(TIME_LED_PIN, 128);
-    analogWrite(BIRTHDAY_LED_PIN, 128);
+
+    if ( blinkPhase ) {
+      debugScreen();
+      digitalWrite(LED_PIN, HIGH);
+      analogWrite(SET_LED_PIN, 128);
+      analogWrite(DATE_LED_PIN, 128);
+      analogWrite(TIME_LED_PIN, 128);
+      analogWrite(BIRTHDAY_LED_PIN, 128);
+    } else {
+      blankScreen();
+    }
 
     // Input Handlers
     if (anyButtonRelease()) {
-      changeState(STATE_CLOCK);
+      if (programSubState < 1) programSubState = 1;
+      if (programSubState == 2) changeState(STATE_CLOCK);
+    }
+    if (anyButtonPress()) {
+      if (programSubState == 1) programSubState = 2;
     }
 }
 // Note: Birth year is stored as the actual year. e.g. 1995

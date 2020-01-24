@@ -29,6 +29,7 @@ void numberToDisplay(unsigned long number, uint8_t);
 void lineToDisplay();
 
 bool anyButtonRelease();
+bool anyButtonPress();
 bool buttonRelease(uint8_t btn);
 bool buttonPress(uint8_t btn);
 
