@@ -83,78 +83,21 @@ void loop() {
 
   switch(programState) {
     case STATE_CLOCK:
-      if (longPressMills[BTN_UP] > 3000 && longPressMills[BTN_DOWN] > 3000) {
-        changeState(STATE_GAME);
-      }
-
-      if (longPressMills[BTN_BDAY] > 3000) {
-        changeState(STATE_SET_BIRTHDAY);
-      }
-
-      if (longPressMills[BTN_CLOCK] > 3000) {
-        changeState(STATE_SET_CLOCK);
-      }
-
-      if (buttonRelease(BTN_TIME)) {
-        if (programSubState != 2) programSubState = 2;
-        else programSubState = 0;
-      }
-
-      if (buttonRelease(BTN_DATE)) {
-        if (programSubState != 1) programSubState = 1;
-        else programSubState = 0;
-      }
-      numberToDisplay(counter, 9 - (secondsToSubtract / 100));
-
-      switch(programSubState) {
-        case 0:
-          break;
-        case 1:
-          digitalWrite(LED_DATE_PIN, HIGH);
-          break;
-        case 2:
-          digitalWrite(LED_TIME_PIN, HIGH);
-          break;
-      }
-
-
-    break;
+      stateClock();
+      break;
     case STATE_SET_CLOCK:
-      digitalWrite(LED_CLOCK_PIN, HIGH);
-      lineToDisplay();
-
-      if (longPressMills[BTN_BDAY] > 3000 || longPressMills[BTN_CLOCK] > 3000) {
-        changeState(STATE_CLOCK);
-      }
-
-      if (anyButtonRelease()) timeoutMills = 0;
-      if (timeoutMills > 15000) changeState(STATE_CLOCK);
-    break;
+      stateSetClock();
+      break;
     case STATE_SET_BIRTHDAY:
-      digitalWrite(LED_BDAY_PIN, HIGH);
-      lineToDisplay();
-
-      if (longPressMills[BTN_BDAY] > 3000 || longPressMills[BTN_CLOCK] > 3000) {
-        changeState(STATE_CLOCK);
-      }
-
-      if (anyButtonRelease()) timeoutMills = 0;
-      if (timeoutMills > 15000) changeState(STATE_CLOCK);
-    break;
+      stateSetBirthday();
+      break;
+    case STATE_DEBUG:
+      stateDebug();
+      break;
     case STATE_GAME:
-      lineToDisplay();
-      if (longPressMills[BTN_UP] > 3000 && longPressMills[BTN_DOWN] > 3000) {
-        changeState(STATE_CLOCK);
-      }
-    break;
+      stateDebug();
+      break;
   }
-
-  Serial.print(longPressMills[0]); Serial.print(' ');
-  Serial.print(longPressMills[1]); Serial.print(' ');
-  Serial.print(longPressMills[2]); Serial.print(' ');
-  Serial.print(longPressMills[3]); Serial.println(' ');
-
-
 
   buttonStatePostLoop();
 }

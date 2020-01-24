@@ -25,19 +25,26 @@ extern uint8_t programState;
 extern uint8_t programSubState;
 
 
-void numberToDisplay(unsigned long number, uint8_t);
-void lineToDisplay();
-
+// ======================= INPUT HELPERS ========================
 bool anyButtonRelease();
 bool anyButtonPress();
 bool buttonRelease(uint8_t btn);
 bool buttonPress(uint8_t btn);
 
-// ========================== SETUP ============================
-void setupBlink();
+// ====================== DISPLAY HELPERS =======================
+
+void numberToDisplay(unsigned long number, uint8_t);
+void lineToDisplay();
 void splashScreen();
 void testScreen();
 void blankScreen();
+
+
+// ======================== DATE HELPERS =========================
+
+
+// =========================== SETUP ==============================
+void setupBlink();
 void initVariables();
 void initPins();
 
@@ -47,5 +54,14 @@ void changeState(uint8_t state);
 void timerPreLoop();
 void buttonStatePreLoop();
 void buttonStatePostLoop();
+
+void stateClock();
+void stateSetClock();
+void stateSetBirthday();
+void stateDebug();
+void stateGame();
+
+
+
 
 #endif

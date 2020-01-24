@@ -440,25 +440,28 @@ void stateClock() {
 
 void stateDebug() {
 
-    if ( blinkPhase ) {
-      debugScreen();
-      digitalWrite(LED_PIN, HIGH);
-      analogWrite(SET_LED_PIN, 128);
-      analogWrite(DATE_LED_PIN, 128);
-      analogWrite(TIME_LED_PIN, 128);
-      analogWrite(BIRTHDAY_LED_PIN, 128);
-    } else {
-      blankScreen();
-    }
+  if ( blinkPhase ) {
+    debugScreen();
+    digitalWrite(LED_PIN, HIGH);
+    analogWrite(SET_LED_PIN, 128);
+    analogWrite(DATE_LED_PIN, 128);
+    analogWrite(TIME_LED_PIN, 128);
+    analogWrite(BIRTHDAY_LED_PIN, 128);
+  } else {
+    blankScreen();
+  }
 
-    // Input Handlers
-    if (anyButtonRelease()) {
-      if (programSubState < 1) programSubState = 1;
-      if (programSubState == 2) changeState(STATE_CLOCK);
-    }
-    if (anyButtonPress()) {
-      if (programSubState == 1) programSubState = 2;
-    }
+  // Input Handlers
+  // This ensures that all buttons are released first.
+  // Then only on the second release, it changes back to the main state.
+
+  if (anyButtonRelease()) {
+    if (programSubState < 1) programSubState = 1;
+    if (programSubState == 2) changeState(STATE_CLOCK);
+  }
+  if (anyButtonPress()) {
+    if (programSubState == 1) programSubState = 2;
+  }
 }
 // Note: Birth year is stored as the actual year. e.g. 1995
 //       Clock year is stored as years since 1970. e.g. 25

@@ -51,11 +51,13 @@
 #define CA_O_DP B00000010
 #define CA_DASH B11111101
 #define CA_FULL B00000000
+#define CA_BLANK B11111111
 
 
 #define STATE_CLOCK 0
 #define STATE_SET_CLOCK 1
 #define STATE_SET_BIRTHDAY 2
-#define STATE_GAME 3
+#define STATE_DEBUG 3
+#define STATE_GAME 4
 
 #endif
