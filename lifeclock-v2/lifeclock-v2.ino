@@ -1,4 +1,5 @@
 #include "functions.h"
+const bool DEBUG = true;
 
 // Button states for UP, DOWN, RESET
 bool buttonStatesPrev [4] = {false, false, false, false};
@@ -10,6 +11,9 @@ unsigned long millsDelta;
 unsigned long prevMills;
 unsigned long currentMills;
 unsigned long timeoutMills;
+
+// Date calculation workings
+tmElements_t tm;
 
 uint16_t secondsToSubtract;
 
@@ -54,12 +58,14 @@ void setup() {
   // setupBlink();
   // delay(3000);
 
+  getTime();
 
   prevMills = currentMills = millis();
 }
 
 
 void loop() {
+  getTime();
   timerPreLoop();
   buttonStatePreLoop();
 
@@ -100,4 +106,5 @@ void loop() {
   }
 
   buttonStatePostLoop();
+  delay(50);
 }

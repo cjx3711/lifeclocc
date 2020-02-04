@@ -31,13 +31,6 @@ bool userModifyVariable(uint16_t &var, uint16_t min, uint16_t max) {
   return false;
 }
 
-void print2digits(int number) {
-  if (number >= 0 && number < 10) {
-    Serial.write('0');
-  }
-  Serial.print(number);
-}
-
 // =============================== DISPLAY HELPERS ============================
 void numberToDisplay(unsigned long number) {
   unsigned long workingCounter = number;
@@ -179,6 +172,13 @@ uint16_t daysInMonth(uint16_t month, uint16_t year) {
   } else {
     return months[month-1];
   }
+}
+
+void print2digits(int number) {
+  if (number >= 0 && number < 10) {
+    Serial.write('0');
+  }
+  Serial.print(number);
 }
 
 void printTime() {

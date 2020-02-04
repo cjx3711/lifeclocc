@@ -20,6 +20,7 @@ bool buttonPress(uint8_t btn) {
 
 // ====================== DISPLAY HELPERS =======================
 
+
 void numberToDisplay(unsigned long number, uint8_t decimal) {
   unsigned long workingCounter = number;
 
@@ -37,6 +38,75 @@ void numberToDisplay(unsigned long number, uint8_t decimal) {
     workingCounter = workingCounter / 10;
     shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
   }
+  digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
+}
+
+void timeToDisplay(uint16_t h, uint16_t m, uint16_t s) {
+  digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
+  uint8_t digit;
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+
+
+  // Second
+  digit = s % 10;
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  digit = s / 10 % 10;
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+
+  // Minute
+  digit = m % 10;
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
+  digit = m / 10 % 10;
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+
+
+  // Hour
+  digit = h % 10;
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
+  digit = h / 10 % 10;
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+
+
+  digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
+}
+
+void dateToDisplay(uint16_t y, uint16_t m, uint16_t d) {
+  digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
+  uint8_t digit;
+  // Day
+  digit = d % 10;
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  digit = d / 10 % 10;
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
+
+  // Month
+  digit = m % 10;
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  digit = m / 10 % 10;
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
+
+  // Year
+  digit = y % 10;
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  digit = y / 10 % 10;
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  digit = y / 100 % 10;
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  digit = y / 1000 % 10;
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+
+
   digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
 }
 
@@ -87,6 +157,41 @@ void blankScreen() {
   digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
   for ( uint8_t i = 0; i < 11; i++) shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
   digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
+}
+
+// ======================== DATE HELPERS =========================
+
+void getTime() {
+  if (RTC.read(tm)) {
+    Serial.print("Time Read Successfully");
+    printTime(tm);
+  } else {
+    Serial.print("Time Error");
+  }
+}
+
+void print2digits(int number) {
+  if (number >= 0 && number < 10) {
+    Serial.write('0');
+  }
+  Serial.print(number);
+}
+
+void printTime(tmElements_t time) {
+  if (!DEBUG) return;
+  Serial.print("Time = ");
+  print2digits(time.Hour);
+  Serial.write(':');
+  print2digits(time.Minute);
+  Serial.write(':');
+  print2digits(time.Second);
+  Serial.print(", Date (D/M/Y) = ");
+  Serial.print(time.Day);
+  Serial.write('/');
+  Serial.print(time.Month);
+  Serial.write('/');
+  Serial.print(time.Year);
+  Serial.println();
 }
 
 // ========================== SETUP ============================
@@ -183,19 +288,19 @@ void buttonStatePostLoop() {
 
 void stateClock() {
 
-  if (longPressMills[BTN_UP] > 900 && longPressMills[BTN_DOWN] > 900 && longPressMills[BTN_PREV] > 900 && longPressMills[BTN_NEXT] > 900) {
+  if (longPressMills[BTN_UP] > SHORT_PRESS_TIMEOUT && longPressMills[BTN_DOWN] > SHORT_PRESS_TIMEOUT && longPressMills[BTN_PREV] > SHORT_PRESS_TIMEOUT && longPressMills[BTN_NEXT] > SHORT_PRESS_TIMEOUT) {
     changeState(STATE_DEBUG);
   }
 
-  if (longPressMills[BTN_UP] > 3000 && longPressMills[BTN_DOWN] > 3000) {
+  if (longPressMills[BTN_UP] > LONG_PRESS_TIMEOUT && longPressMills[BTN_DOWN] > LONG_PRESS_TIMEOUT) {
     changeState(STATE_GAME);
   }
 
-  if (longPressMills[BTN_BDAY] > 3000) {
+  if (longPressMills[BTN_BDAY] > LONG_PRESS_TIMEOUT) {
     changeState(STATE_SET_BIRTHDAY);
   }
 
-  if (longPressMills[BTN_CLOCK] > 3000) {
+  if (longPressMills[BTN_CLOCK] > LONG_PRESS_TIMEOUT) {
     changeState(STATE_SET_CLOCK);
   }
 
@@ -208,16 +313,20 @@ void stateClock() {
     if (programSubState != 1) programSubState = 1;
     else programSubState = 0;
   }
-  numberToDisplay(counter, 9 - (secondsToSubtract / 100));
+  
 
   switch(programSubState) {
-    case 0:
+    case 0: // Regular Clock Mode
+      numberToDisplay(counter, 9 - (secondsToSubtract / 100));
       break;
-    case 1:
+    case 1: // View Date Mode
       digitalWrite(LED_DATE_PIN, HIGH);
+      dateToDisplay(2020,2,16);
+      
       break;
-    case 2:
+    case 2: // View Time Mode
       digitalWrite(LED_TIME_PIN, HIGH);
+      timeToDisplay(15,25,62);
       break;
   }
 
@@ -226,7 +335,7 @@ void stateSetClock() {
   digitalWrite(LED_CLOCK_PIN, HIGH);
   lineToDisplay();
 
-  if (longPressMills[BTN_BDAY] > 3000 || longPressMills[BTN_CLOCK] > 3000) {
+  if (longPressMills[BTN_BDAY] > LONG_PRESS_TIMEOUT || longPressMills[BTN_CLOCK] > LONG_PRESS_TIMEOUT) {
     changeState(STATE_CLOCK);
   }
 
@@ -237,7 +346,7 @@ void stateSetBirthday() {
   digitalWrite(LED_BDAY_PIN, HIGH);
   lineToDisplay();
 
-  if (longPressMills[BTN_BDAY] > 3000 || longPressMills[BTN_CLOCK] > 3000) {
+  if (longPressMills[BTN_BDAY] > LONG_PRESS_TIMEOUT || longPressMills[BTN_CLOCK] > LONG_PRESS_TIMEOUT) {
     changeState(STATE_CLOCK);
   }
 
@@ -250,11 +359,13 @@ void stateDebug() {
   digitalWrite(LED_CLOCK_PIN, HIGH);
   digitalWrite(LED_TIME_PIN, HIGH);
   digitalWrite(LED_BDAY_PIN, HIGH);
-  if (longPressMills[BTN_UP] > 3000 && longPressMills[BTN_DOWN] > 3000) {
+  if (longPressMills[BTN_UP] > LONG_PRESS_TIMEOUT && longPressMills[BTN_DOWN] > LONG_PRESS_TIMEOUT) {
     changeState(STATE_CLOCK);
   }
 
-    // Input Handlers
+  // Input Handlers
+  // This ensures that all buttons are released first.
+  // Then only on the second release, it changes back to the main state.
   if (anyButtonRelease()) {
     if (programSubState < 1) programSubState = 1;
     if (programSubState == 2) changeState(STATE_CLOCK);
@@ -265,7 +376,7 @@ void stateDebug() {
 }
 void stateGame() {
   lineToDisplay();
-  if (longPressMills[BTN_UP] > 3000 && longPressMills[BTN_DOWN] > 3000) {
+  if (longPressMills[BTN_UP] > LONG_PRESS_TIMEOUT && longPressMills[BTN_DOWN] > LONG_PRESS_TIMEOUT) {
     changeState(STATE_CLOCK);
   }
 }

@@ -1,9 +1,9 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
-#include <DS1307RTC.h>
-#include <Time.h>
+#include <Time.h> // Time by Michael Margolis v 1.6.0
 #include <Wire.h>
+#include <DS1307RTC.h> // DS1370RTC by Michael Margolis v 1.4.1
 #include <avr/eeprom.h>
 #include "datatypes.h"
 #include "constants.h"
@@ -51,7 +51,7 @@ bool anyButtonRelease();
 bool buttonRelease(uint8_t btn);
 bool buttonPress(uint8_t btn);
 bool userModifyVariable(uint16_t &var, uint16_t min, uint16_t max);
-void print2digits(int number);
+
 
 // =============================== DISPLAY HELPERS ============================
 void numberToDisplay(unsigned long number);
@@ -70,6 +70,7 @@ void debugScreen();
 // =============================== DATE HELPERS ============================
 bool validDate(SDate date);
 uint16_t daysInMonth(uint16_t month, uint16_t year);
+void print2digits(int number);
 void printTime();
 void printTime(tmElements_t time);
 void getTime();
