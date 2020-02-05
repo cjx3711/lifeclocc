@@ -12,6 +12,9 @@ unsigned long prevMills;
 unsigned long currentMills;
 unsigned long timeoutMills;
 
+bool blinkPhase, prevBlinkPhase, blinkPhaseChange;
+bool repeatPhase, prevRepeatPhase, repeatPhaseChange;
+
 // Date calculation workings
 tmElements_t tm;
 

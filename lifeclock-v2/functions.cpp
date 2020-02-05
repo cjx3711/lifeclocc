@@ -41,7 +41,7 @@ void numberToDisplay(unsigned long number, uint8_t decimal) {
   digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
 }
 
-void timeToDisplay(uint16_t h, uint16_t m, uint16_t s) {
+void timeToDisplay(uint16_t h, uint16_t m, uint16_t s, uint8_t blinkWhich) {
   digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
   uint8_t digit;
   shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
@@ -49,23 +49,38 @@ void timeToDisplay(uint16_t h, uint16_t m, uint16_t s) {
 
 
   // Second
-  digit = s % 10;
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
-  digit = s / 10 % 10;
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  if (blinkWhich == 3 && blinkPhase) {
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+  } else {
+    digit = s % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+    digit = s / 10 % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  }
 
   // Minute
-  digit = m % 10;
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
-  digit = m / 10 % 10;
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  if (blinkWhich == 2 && blinkPhase) {
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+  } else {
+    digit = m % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
+    digit = m / 10 % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  }
 
 
   // Hour
-  digit = h % 10;
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
-  digit = h / 10 % 10;
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  if (blinkWhich == 1 && blinkPhase) {
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+  } else {
+    digit = h % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
+    digit = h / 10 % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  }
   
   shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
   shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
@@ -75,34 +90,52 @@ void timeToDisplay(uint16_t h, uint16_t m, uint16_t s) {
   digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
 }
 
-void dateToDisplay(uint16_t y, uint16_t m, uint16_t d) {
+void dateToDisplay(uint16_t y, uint16_t m, uint16_t d, uint8_t blinkWhich) {
   digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
   uint8_t digit;
+
   // Day
-  digit = d % 10;
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
-  digit = d / 10 % 10;
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  if (blinkWhich == 3 && blinkPhase) {
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+  } else {
+    digit = d % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+    digit = d / 10 % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  }
 
   shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
 
   // Month
-  digit = m % 10;
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
-  digit = m / 10 % 10;
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  if (blinkWhich == 2 && blinkPhase) {
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+  } else {
+    digit = m % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+    digit = m / 10 % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  }
 
   shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
 
   // Year
-  digit = y % 10;
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
-  digit = y / 10 % 10;
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
-  digit = y / 100 % 10;
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
-  digit = y / 1000 % 10;
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  if (blinkWhich == 1 && blinkPhase) {
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+  } else {
+    digit = y % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+    digit = y / 10 % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+    digit = y / 100 % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+    digit = y / 1000 % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  }
   
   shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
 
@@ -224,6 +257,9 @@ void initVariables() {
 
   programState = STATE_CLOCK;
   programSubState = 0;
+
+  blinkPhase = prevBlinkPhase = blinkPhaseChange = false;
+  repeatPhase = prevRepeatPhase = repeatPhaseChange = false;
 }
 
 void initPins() {
@@ -259,6 +295,12 @@ void timerPreLoop() {
   currentMills = millis();
   millsDelta = currentMills - prevMills;
   timeoutMills += millsDelta;
+  blinkPhase = (currentMills / BLINK_MS) % 2;
+  blinkPhaseChange = blinkPhase != prevBlinkPhase;
+  prevBlinkPhase = blinkPhase;
+  repeatPhase = (currentMills / REPEAT_MS) % 4;
+  repeatPhaseChange = repeatPhase != prevRepeatPhase;
+  prevRepeatPhase = repeatPhase;
 
   secondsToSubtract += millsDelta;
 }
@@ -321,26 +363,51 @@ void stateClock() {
       break;
     case 1: // View Date Mode
       digitalWrite(LED_DATE_PIN, HIGH);
-      dateToDisplay(2020,2,16);
+
+      dateToDisplay(tm.Year + 1970, tm.Month, tm.Day, 0);
       
       break;
     case 2: // View Time Mode
       digitalWrite(LED_TIME_PIN, HIGH);
-      timeToDisplay(15,25,62);
+      timeToDisplay(tm.Hour, tm.Minute, tm.Second, 0);
       break;
   }
 
 }
 void stateSetClock() {
   digitalWrite(LED_CLOCK_PIN, HIGH);
-  lineToDisplay();
 
-  if (longPressMills[BTN_BDAY] > LONG_PRESS_TIMEOUT || longPressMills[BTN_CLOCK] > LONG_PRESS_TIMEOUT) {
-    changeState(STATE_CLOCK);
+  // Input Handlers
+  bool timeChanged = false;
+
+  if (timeChanged) {
+    // setTime();
+    // printTime();
   }
 
   if (anyButtonRelease()) timeoutMills = 0;
-  if (timeoutMills > 15000) changeState(STATE_CLOCK);
+  if (timeoutMills > SET_STATE_TIMEOUT) changeState(STATE_CLOCK);
+
+  if ( buttonRelease(BTN_NEXT) ) {
+    programSubState++;
+    if (programSubState > 6) programSubState = 1;
+  }
+
+  if ( buttonRelease(BTN_PREV) ) {
+    programSubState--;
+    if (programSubState < 1) programSubState = 6;
+  }
+  
+  if (longPressMills[BTN_NEXT] > LONG_PRESS_TIMEOUT || longPressMills[BTN_PREV] > LONG_PRESS_TIMEOUT) {
+    changeState(STATE_CLOCK);
+  }
+
+
+  if (programSubState <= 3) {
+    dateToDisplay(tm.Year + 1970, tm.Month, tm.Day, programSubState == 0 ? 1 : programSubState);
+  } else {
+    timeToDisplay(tm.Hour, tm.Minute, tm.Second, programSubState - 3);
+  }
 }
 void stateSetBirthday() {
   digitalWrite(LED_BDAY_PIN, HIGH);

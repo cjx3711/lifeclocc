@@ -12,13 +12,8 @@ unsigned long prevMills;
 unsigned long currentMills;
 unsigned long timeoutMills;
 
-bool blinkPhase;
-bool prevBlinkPhase;
-bool blinkPhaseChange;
-
-bool repeatPhase;
-bool prevRepeatPhase;
-bool repeatPhaseChange;
+bool blinkPhase, prevBlinkPhase, blinkPhaseChange;
+bool repeatPhase, prevRepeatPhase, repeatPhaseChange;
 
 // Working variables
 uint8_t digit;

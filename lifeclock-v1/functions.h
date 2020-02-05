@@ -19,13 +19,9 @@ extern unsigned long millsDelta;
 extern unsigned long prevMills;
 extern unsigned long currentMills;
 extern unsigned long timeoutMills;
-extern bool blinkPhase;
-extern bool prevBlinkPhase;
-extern bool blinkPhaseChange;
 
-extern bool repeatPhase;
-extern bool prevRepeatPhase;
-extern bool repeatPhaseChange;
+extern bool blinkPhase, prevBlinkPhase, blinkPhaseChange;
+extern bool repeatPhase, prevRepeatPhase, repeatPhaseChange;
 
 // Working variables
 extern uint8_t digit;

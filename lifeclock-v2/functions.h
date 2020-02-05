@@ -22,6 +22,9 @@ extern unsigned long prevMills;
 extern unsigned long currentMills;
 extern unsigned long timeoutMills;
 
+extern bool blinkPhase, prevBlinkPhase, blinkPhaseChange;
+extern bool repeatPhase, prevRepeatPhase, repeatPhaseChange;
+
 // Date calculation workings
 extern tmElements_t tm;
 
@@ -40,8 +43,8 @@ bool buttonPress(uint8_t btn);
 // ====================== DISPLAY HELPERS =======================
 
 void numberToDisplay(unsigned long number, uint8_t);
-void timeToDisplay(uint16_t h, uint16_t m, uint16_t s);
-void dateToDisplay(uint16_t d, uint16_t m, uint16_t y);
+void timeToDisplay(uint16_t h, uint16_t m, uint16_t s, uint8_t blinkWhich);
+void dateToDisplay(uint16_t d, uint16_t m, uint16_t y, uint8_t blinkWhich);
 void lineToDisplay();
 void splashScreen();
 void testScreen();
