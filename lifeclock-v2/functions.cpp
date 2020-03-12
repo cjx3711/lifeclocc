@@ -215,7 +215,7 @@ bool validDate(SDate date) {
 }
 
 uint16_t daysInMonth(uint16_t month, uint16_t year) {
-  bool leapYear = year % 4 == 0;
+  bool leapYear = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
   uint16_t months [12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
   if (leapYear && month == 2) {
     return 29;
