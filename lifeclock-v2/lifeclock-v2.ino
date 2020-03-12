@@ -18,6 +18,9 @@ bool repeatPhase, prevRepeatPhase, repeatPhaseChange;
 // Date calculation workings
 tmElements_t tm;
 
+SDate currentDate;
+STime currentTime;
+
 uint16_t secondsToSubtract;
 
 uint8_t programState;
@@ -60,6 +63,8 @@ void setup() {
   Serial.begin(9600);
   // setupBlink();
   // delay(3000);
+
+  Serial.println("Lifeclocc Started");
 
   getTime();
 

@@ -28,6 +28,9 @@ extern bool repeatPhase, prevRepeatPhase, repeatPhaseChange;
 // Date calculation workings
 extern tmElements_t tm;
 
+extern SDate currentDate;
+extern STime currentTime;
+
 extern uint16_t secondsToSubtract;
 
 extern uint8_t programState;
@@ -39,6 +42,7 @@ bool anyButtonRelease();
 bool anyButtonPress();
 bool buttonRelease(uint8_t btn);
 bool buttonPress(uint8_t btn);
+bool userModifyVariable(uint16_t &var, uint16_t min, uint16_t max);
 
 // ====================== DISPLAY HELPERS =======================
 
@@ -53,6 +57,9 @@ void blankScreen();
 
 // ======================== DATE HELPERS =========================
 void getTime();
+void setTime();
+bool validDate(SDate date);
+uint16_t daysInMonth(uint16_t month, uint16_t year);
 void print2digits(int number);
 void printTime(tmElements_t time);
 

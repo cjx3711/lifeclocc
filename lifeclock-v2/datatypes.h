@@ -10,5 +10,10 @@ struct SDate {
   uint16_t year;
 };
 
+struct STime {
+  uint16_t hour;
+  uint16_t minute;
+  uint16_t second;
+};
 
 #endif
