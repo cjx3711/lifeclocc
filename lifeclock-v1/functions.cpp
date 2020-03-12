@@ -83,13 +83,13 @@ void dateToDisplay(uint16_t d, uint16_t m, uint16_t y, uint8_t blinkWhich) {
   }
 
   uint16_t workings;
-  // Set date
-  workings = d;
-  for ( int i = 0; i < 2; i++ ) {
+    // Set year
+  workings = y;
+  for ( int i = 0; i < 4; i++ ) {
     digit = workings % 10;
     workings = workings / 10;
-    if ( blinkWhich == 1 && blinkPhase ) setBlank(i + 8);
-    else setDigit(i + 8, digit);
+    if ( blinkWhich == 1 && blinkPhase ) setBlank(i + 6);
+    else setDigit(i + 6, digit);
   }
 
   // Set month
@@ -97,13 +97,13 @@ void dateToDisplay(uint16_t d, uint16_t m, uint16_t y, uint8_t blinkWhich) {
   for ( int i = 0; i < 2; i++ ) {
     digit = workings % 10;
     workings = workings / 10;
-    if ( blinkWhich == 2 && blinkPhase ) setBlank(i + 5);
-    else setDigit(i + 5, digit);
+    if ( blinkWhich == 2 && blinkPhase ) setBlank(i + 3);
+    else setDigit(i + 3, digit);
   }
 
-  // Set year
-  workings = y;
-  for ( int i = 0; i < 4; i++ ) {
+  // Set date
+  workings = d;
+  for ( int i = 0; i < 2; i++ ) {
     digit = workings % 10;
     workings = workings / 10;
     if ( blinkWhich == 3 && blinkPhase ) setBlank(i);
@@ -473,12 +473,12 @@ void stateSetClock() {
   uint16_t maxDays = daysInMonth(currentDate.month, currentDate.year + 1970);
   switch(programSubState) {
     case 0: // To allow for the first button release
-    case 1: // Day
-      timeChanged = userModifyVariable(currentDate.date, 1, maxDays); break;
+    case 1: // Year
+      timeChanged = userModifyVariable(currentDate.year, 30, 150); break;
     case 2: // Month
       timeChanged = userModifyVariable(currentDate.month, 1, 12); break;
-    case 3: // Year
-      timeChanged = userModifyVariable(currentDate.year, 0, 150); break;
+    case 3: // Day
+      timeChanged = userModifyVariable(currentDate.date, 1, maxDays); break;
     case 4: // Hour
       timeChanged = userModifyVariable(currentHour, 0, 23); break;
     case 5: // Minute
@@ -526,12 +526,12 @@ void stateSetBirthday() {
   bool timeChanged = false;
   uint16_t maxDays = daysInMonth(birthDate.month, birthDate.year);
   switch(programSubState) {
-    case 0: // Day
-      timeChanged = userModifyVariable(birthDate.date, 1, maxDays); break;
+    case 0: // Year
+      timeChanged = userModifyVariable(birthDate.year, 1900, 2100); break;
     case 1: // Month
       timeChanged = userModifyVariable(birthDate.month, 1, 12); break;
-    case 2: // Year
-      timeChanged = userModifyVariable(birthDate.year, 1900, 2100); break;
+    case 2: // Day
+      timeChanged = userModifyVariable(birthDate.date, 1, maxDays); break;
   }
 
   maxDays = daysInMonth(birthDate.month, birthDate.year);
