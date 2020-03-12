@@ -19,6 +19,7 @@ bool repeatPhase, prevRepeatPhase, repeatPhaseChange;
 tmElements_t tm;
 
 SDate currentDate;
+SDate birthDate;
 STime currentTime;
 
 uint16_t secondsToSubtract;
@@ -61,8 +62,12 @@ void setup() {
   // delay(1000);
   // splashScreen();
   Serial.begin(9600);
-  // setupBlink();
+  setupBlink();
   // delay(3000);
+  readBirthday();
+
+  setupBlink();
+
 
   Serial.println("Lifeclocc Started");
 

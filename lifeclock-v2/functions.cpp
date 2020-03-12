@@ -341,6 +341,25 @@ void initPins() {
   analogWrite(DSP_POWER_PIN, 128);
 }
 
+// Read or initialise birthday
+void readBirthday() {
+  eeprom_read_block((void*)&birthDate, (void*)0, sizeof(birthDate));
+
+  if (!validDate(birthDate)) {
+    birthDate.date = 1;
+    birthDate.month = 1;
+    birthDate.year = 1990;
+    eeprom_write_block((const void*)&birthDate, (void*)0, sizeof(birthDate));
+    if (DEBUG) Serial.println("Init Birthday: ");
+  } else {
+    if (DEBUG) {
+      Serial.print("Read Birthday: "); Serial.print(birthDate.date);
+      Serial.print(" "); Serial.print(birthDate.month);
+      Serial.print(" "); Serial.println(birthDate.year);
+    }
+  }
+}
+
 // ========================== STATES ============================
 
 void changeState(uint8_t state) {
@@ -400,6 +419,7 @@ void stateClock() {
 
   if (longPressMills[BTN_BDAY] > LONG_PRESS_TIMEOUT) {
     changeState(STATE_SET_BIRTHDAY);
+    programSubState = 1;
   }
 
   if (longPressMills[BTN_CLOCK] > LONG_PRESS_TIMEOUT) {
@@ -490,7 +510,33 @@ void stateSetClock() {
 }
 void stateSetBirthday() {
   digitalWrite(LED_BDAY_PIN, HIGH);
-  lineToDisplay();
+  
+  bool timeChanged = false;
+  uint16_t maxDays = daysInMonth(birthDate.month, birthDate.year);
+  switch(programSubState) {
+    case 0: // Year
+      timeChanged = userModifyVariable(birthDate.year, 1900, 2100); break;
+    case 1: // Month
+      timeChanged = userModifyVariable(birthDate.month, 1, 12); break;
+    case 2: // Day
+      timeChanged = userModifyVariable(birthDate.date, 1, maxDays); break;
+  }
+
+  maxDays = daysInMonth(birthDate.month, birthDate.year);
+  if (birthDate.date > maxDays) birthDate.date = maxDays;
+  if (timeChanged) eeprom_write_block((const void*)&birthDate, (void*)0, sizeof(birthDate));
+
+  dateToDisplay(birthDate.year, birthDate.month, birthDate.date, programSubState + 1);
+
+  if ( buttonRelease(BTN_NEXT) ) {
+    if ( programSubState == 2 ) programSubState = 0;
+    else programSubState++;
+  }
+
+  if ( buttonRelease(BTN_PREV) ) {
+    if ( programSubState == 0 ) programSubState = 2;
+    else programSubState--;
+  }
 
   if (longPressMills[BTN_BDAY] > LONG_PRESS_TIMEOUT || longPressMills[BTN_CLOCK] > LONG_PRESS_TIMEOUT) {
     changeState(STATE_CLOCK);
@@ -498,6 +544,7 @@ void stateSetBirthday() {
 
   if (anyButtonRelease()) timeoutMills = 0;
   if (timeoutMills > 15000) changeState(STATE_CLOCK);
+
 }
 void stateDebug() {
   testScreen();

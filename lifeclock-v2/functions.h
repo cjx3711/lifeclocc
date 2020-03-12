@@ -29,6 +29,7 @@ extern bool repeatPhase, prevRepeatPhase, repeatPhaseChange;
 extern tmElements_t tm;
 
 extern SDate currentDate;
+extern SDate birthDate;
 extern STime currentTime;
 
 extern uint16_t secondsToSubtract;
@@ -67,6 +68,7 @@ void printTime(tmElements_t time);
 void setupBlink();
 void initVariables();
 void initPins();
+void readBirthday();
 
 // ========================== STATES ============================
 void changeState(uint8_t state);
