@@ -115,7 +115,7 @@ void loop() {
       stateDebug();
       break;
     case STATE_GAME:
-      stateDebug();
+      stateGame();
       break;
   }
 

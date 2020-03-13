@@ -463,10 +463,12 @@ void buttonStatePostLoop() {
 void stateClock() {
 
   if (longPressMills[BTN_UP] > SHORT_PRESS_TIMEOUT && longPressMills[BTN_DOWN] > SHORT_PRESS_TIMEOUT && longPressMills[BTN_PREV] > SHORT_PRESS_TIMEOUT && longPressMills[BTN_NEXT] > SHORT_PRESS_TIMEOUT) {
+    Serial.println("Debug Mode");
     changeState(STATE_DEBUG);
   }
 
   if (longPressMills[BTN_UP] > LONG_PRESS_TIMEOUT && longPressMills[BTN_DOWN] > LONG_PRESS_TIMEOUT) {
+    Serial.println("Game Mode");
     changeState(STATE_GAME);
   }
 
@@ -492,7 +494,7 @@ void stateClock() {
   counter = getSecondsTillDeath();
   switch(programSubState) {
     case 0: // Regular Clock Mode
-      twoNumbersToDisplay(counter / 86400, counter % 86400, 9 - (secondsToSubtract / 100));
+      twoNumbersToDisplay(counter / SECONDS_IN_DAY, counter % SECONDS_IN_DAY, 9 - (secondsToSubtract / 100));
       break;
     case 1: // View Date Mode
       digitalWrite(LED_DATE_PIN, HIGH);
@@ -597,7 +599,7 @@ void stateSetBirthday() {
   }
 
   if (anyButtonRelease()) timeoutMills = 0;
-  if (timeoutMills > 15000) changeState(STATE_CLOCK);
+  if (timeoutMills > SET_STATE_TIMEOUT) changeState(STATE_CLOCK);
 
 }
 void stateDebug() {
@@ -621,6 +623,7 @@ void stateDebug() {
     if (programSubState == 1) programSubState = 2;
   }
 }
+
 void stateGame() {
   lineToDisplay();
   if (longPressMills[BTN_UP] > LONG_PRESS_TIMEOUT && longPressMills[BTN_DOWN] > LONG_PRESS_TIMEOUT) {
