@@ -196,20 +196,18 @@ void dateToDisplay(uint16_t y, uint16_t m, uint16_t d, uint8_t blinkWhich) {
   digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
 }
 
-void lineToDisplay() {
+void lineToDisplay(unsigned long counter) {
   digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
 
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
+  uint8_t pos = counter % 11;
+  for (int i = 0 ; i < pos; i++) {
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
+  }
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+
+  for (int i = 0 ; i < 11 - pos - 1; i++) {
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
+  }
 
   digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
 }
@@ -229,6 +227,7 @@ void splashScreen() {
   shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_I);
   shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_L);
   shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DASH);
+
 
   digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
 }
@@ -624,8 +623,89 @@ void stateDebug() {
   }
 }
 
+
+// =================== GAME STATE ====================
+
+void initCharacter() {
+  character.blinkTimer = 0;
+  character.stateTimer = 0;
+  character.moveTimer = 0;
+  character.isBlink = false;
+  character.pos = 3;
+  character.charState = random(0,3);
+}
+
+void calcAndRenderCharacter(SCharacter& c) {
+  // Calculations here
+  c.blinkTimer -= millsDelta;
+  c.stateTimer -= millsDelta;
+  c.moveTimer -= millsDelta;
+  if ( c.moveTimer <= 0 ) {
+    c.moveTimer = random(500, 1700);
+    if ( random() % 2 ) {
+      if ( c.pos > 0 ) c.pos--;
+    } else {
+      if ( c.pos < 7 ) c.pos++;
+    }
+  }
+
+  if ( c.blinkTimer <= 0 ) {
+    c.isBlink = !c.isBlink;
+    if ( c.isBlink ) {
+      c.blinkTimer = random(50, 200);
+    } else {
+      c.blinkTimer = random(800, 5000);
+    }
+  }
+  if ( c.stateTimer <= 0 ) {
+    c.stateTimer = random(800, 5000);
+    c.charState = random(0,100);
+    if ( c.charState < 60 ) c.charState = CHAR_FORWARD;
+    else if ( c.charState < 80 ) c.charState = CHAR_LEFT;
+    else c.charState = CHAR_RIGHT;
+  }
+
+  // Rendering here
+  digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
+
+  for ( int i = 0; i < 11; i++ ) {
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+  }
+
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_LOWER_RIGHT);
+  if ( c.isBlink ) {
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_LOWER_DASH);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_LOWER_DASH);
+  } else {
+    switch (c.charState) {
+      case CHAR_FORWARD:
+        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_LOWER_LEFT_C);
+        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_LOWER_RIGHT_C);
+      break;
+      case CHAR_LEFT:
+        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_LOWER_LEFT_C);
+        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_LOWER_LEFT_C);
+      break;
+      case CHAR_RIGHT:
+        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_LOWER_RIGHT_C);
+        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_LOWER_RIGHT_C);
+      break;
+    }
+
+  }
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_LOWER_LEFT);
+
+
+  for ( int i = 0; i < c.pos; i++ ) {
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+  }
+  digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
+}
+
 void stateGame() {
-  lineToDisplay();
+  calcAndRenderCharacter(character);
+
+
   if (longPressMills[BTN_UP] > LONG_PRESS_TIMEOUT && longPressMills[BTN_DOWN] > LONG_PRESS_TIMEOUT) {
     changeState(STATE_CLOCK);
   }

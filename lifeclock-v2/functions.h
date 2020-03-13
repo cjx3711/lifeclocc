@@ -38,6 +38,8 @@ extern uint16_t secondsToSubtract;
 extern uint8_t programState;
 extern uint8_t programSubState;
 
+extern SCharacter character;
+
 
 // ======================= INPUT HELPERS ========================
 bool anyButtonRelease();
@@ -84,6 +86,9 @@ void stateClock();
 void stateSetClock();
 void stateSetBirthday();
 void stateDebug();
+
+// =================== GAME STATE ====================
+void initCharacter();
 void stateGame();
 
 

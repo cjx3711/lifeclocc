@@ -54,17 +54,18 @@ uint8_t NUMBER_CODE_DP[] = {
   B11110111,
 };
 
+SCharacter character;
+
 void setup() {
   initPins();
   testScreen();
   setupBlink();
   initVariables();
   setupBlink();
-  // delay(1000);
-  // splashScreen();
+  splashScreen();
   Serial.begin(9600);
   setupBlink();
-  // delay(3000);
+  delay(3000);
   readBirthday();
 
   setupBlink();
@@ -75,6 +76,8 @@ void setup() {
   getTime();
 
   prevMills = currentMills = millis();
+
+  initCharacter();
 }
 
 
@@ -120,5 +123,5 @@ void loop() {
   }
 
   buttonStatePostLoop();
-  delay(50);
+  delay(25);
 }
