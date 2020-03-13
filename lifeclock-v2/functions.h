@@ -27,6 +27,7 @@ extern bool repeatPhase, prevRepeatPhase, repeatPhaseChange;
 
 // Date calculation workings
 extern tmElements_t tm;
+extern tmElements_t tm2; // Stores birthday for subtraction
 
 extern SDate currentDate;
 extern SDate birthDate;
@@ -48,6 +49,7 @@ bool userModifyVariable(uint16_t &var, uint16_t min, uint16_t max);
 // ====================== DISPLAY HELPERS =======================
 
 void numberToDisplay(unsigned long number, uint8_t);
+void twoNumbersToDisplay(unsigned long days, unsigned long seconds, uint8_t decimal);
 void timeToDisplay(uint16_t h, uint16_t m, uint16_t s, uint8_t blinkWhich);
 void dateToDisplay(uint16_t d, uint16_t m, uint16_t y, uint8_t blinkWhich);
 void lineToDisplay();
@@ -59,6 +61,7 @@ void blankScreen();
 // ======================== DATE HELPERS =========================
 void getTime();
 void setTime();
+unsigned long getSecondsTillDeath();
 bool validDate(SDate date);
 uint16_t daysInMonth(uint16_t month, uint16_t year);
 void print2digits(int number);

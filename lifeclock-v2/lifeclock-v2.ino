@@ -17,6 +17,7 @@ bool repeatPhase, prevRepeatPhase, repeatPhaseChange;
 
 // Date calculation workings
 tmElements_t tm;
+tmElements_t tm2; // Stores birthday for subtraction
 
 SDate currentDate;
 SDate birthDate;

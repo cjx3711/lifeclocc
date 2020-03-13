@@ -54,6 +54,46 @@ void numberToDisplay(unsigned long number, uint8_t decimal) {
   digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
 }
 
+void twoNumbersToDisplay(unsigned long days, unsigned long seconds, uint8_t decimal) {
+  unsigned long workingCounter = seconds;
+
+  digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
+  // Send out the number after the decimal first.
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[decimal]);
+
+  // Send the number with the decimal digit
+  uint8_t digit = workingCounter % 10;
+  workingCounter = workingCounter / 10;
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
+
+  // Send the rest of the seconds' digit
+  for ( int i = 0; i < 4; i++ ) {
+    digit = workingCounter % 10;
+    workingCounter = workingCounter / 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  }
+
+  workingCounter = days;
+
+  uint8_t restOfNumbers = 5; // Used to make decimal point blink.
+  if ( seconds % 2 ) { 
+    // Send the number with the decimal digit
+    digit = workingCounter % 10;
+    workingCounter = workingCounter / 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
+    restOfNumbers = 4;
+  }
+  
+  // Send the rest of the days' digits
+  for ( int i = 0; i < restOfNumbers; i++ ) {
+    digit = workingCounter % 10;
+    workingCounter = workingCounter / 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  }
+
+  digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
+}
+
 void timeToDisplay(uint16_t h, uint16_t m, uint16_t s, uint8_t blinkWhich) {
   digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
   uint8_t digit;
@@ -248,6 +288,19 @@ void setTime() {
   RTC.write(tm);
 }
 
+unsigned long getSecondsTillDeath() {
+  tm2.Day = birthDate.date;
+  tm2.Month = birthDate.month;
+  tm2.Year = birthDate.year + 80 - 1970;
+  tm2.Hour = tm2.Minute = tm2.Second = 0;
+  time_t t1 = makeTime(tm);
+  time_t t2 = makeTime(tm2);
+  // printTime(tm);
+  // printTime(tm2);
+  return t2 - t1;
+}
+
+
 void print2digits(int number) {
   if (number >= 0 && number < 10) {
     Serial.write('0');
@@ -436,9 +489,10 @@ void stateClock() {
     else programSubState = 0;
   }
 
+  counter = getSecondsTillDeath();
   switch(programSubState) {
     case 0: // Regular Clock Mode
-      numberToDisplay(counter, 9 - (secondsToSubtract / 100));
+      twoNumbersToDisplay(counter / 86400, counter % 86400, 9 - (secondsToSubtract / 100));
       break;
     case 1: // View Date Mode
       digitalWrite(LED_DATE_PIN, HIGH);
