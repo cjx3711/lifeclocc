@@ -12,5 +12,4 @@ struct SDate {
   uint16_t year;
 };
 
-
 #endif

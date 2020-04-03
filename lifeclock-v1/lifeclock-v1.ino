@@ -4,21 +4,16 @@ const bool DEBUG = true;
 // Button states for UP, DOWN, RESET
 bool buttonStatesPrev [3] = {false, false, false};
 bool buttonStates [3] = {false, false, false};
+unsigned long longPressMills [] = {0,0,0};
 
 unsigned long counter;
 unsigned long millsDelta;
 unsigned long prevMills;
 unsigned long currentMills;
-unsigned long longPressMills [] = {0,0,0};
 unsigned long timeoutMills;
 
-bool blinkPhase;
-bool prevBlinkPhase;
-bool blinkPhaseChange;
-
-bool repeatPhase;
-bool prevRepeatPhase;
-bool repeatPhaseChange;
+bool blinkPhase, prevBlinkPhase, blinkPhaseChange;
+bool repeatPhase, prevRepeatPhase, repeatPhaseChange;
 
 // Working variables
 uint8_t digit;
@@ -35,7 +30,7 @@ uint16_t currentHour;
 uint16_t currentSecond;
 
 uint8_t programState;
-uint8_t stateCounter;
+uint8_t programSubState;
 
 void setup() {
   initVariables();
@@ -48,25 +43,10 @@ void setup() {
   splashScreen();
   setupBlink();
 
-  // Read or initialise birthday
-  eeprom_read_block((void*)&birthDate, (void*)0, sizeof(birthDate));
-
-  if (!validDate(birthDate)) {
-    birthDate.date = 1;
-    birthDate.month = 1;
-    birthDate.year = 1990;
-    eeprom_write_block((const void*)&birthDate, (void*)0, sizeof(birthDate));
-    if (DEBUG) Serial.println("Init Birthday: ");
-  } else {
-    if (DEBUG) {
-      Serial.print("Read Birthday: "); Serial.print(birthDate.date);
-      Serial.print(" "); Serial.print(birthDate.month);
-      Serial.print(" "); Serial.println(birthDate.year);
-    }
-  }
+  readBirthday();
 
   setupBlink();
-  delay(200);
+  delay(100);
 }
 
 void loop() {
@@ -74,29 +54,23 @@ void loop() {
   buttonStatePreLoop();
   getTime();
 
-  // Global (not within states) input handlers
-  for (int i = 0; i < 3; i++) {
-    if (buttonStates[i]) {
-      digitalWrite(LED_PIN, HIGH);
-      longPressMills[i] += millsDelta;
-    } else {
-      longPressMills[i] = 0;
-    }
-  }
-
   switch (programState) {
     case STATE_CLOCK:
       // ------- REGULAR CLOCK STATE -------
       stateClock();
-    break;
+      break;
     case STATE_SET_CLOCK:
       // ------- SETTING DATE STATE -------
       stateSetClock();
-    break;
+      break;
     case STATE_SET_BIRTHDAY:
       // ------- SETTING BIRTHDAY STATE --------
       stateSetBirthday();
-    break;
+      break;
+    case STATE_DEBUG:
+      // ------- DEBUG STATE ---------
+      stateDebug();
+      break;
   }
 
   buttonStatePostLoop();
