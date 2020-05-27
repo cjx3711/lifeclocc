@@ -8,6 +8,7 @@
 #include "constants.h"
 
 extern const bool DEBUG;
+extern const bool DISPLAY_MODE;
 
 extern uint8_t NUMBER_CODE [];
 extern uint8_t NUMBER_CODE_DP [];

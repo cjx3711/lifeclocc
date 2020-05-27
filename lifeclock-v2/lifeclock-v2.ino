@@ -1,5 +1,6 @@
 #include "functions.h"
 const bool DEBUG = true;
+const bool DISPLAY_MODE = DAYS; // Display mode can either be SECONDS or DAYS
 
 // Button states for UP, DOWN, RESET
 bool buttonStatesPrev [4] = {false, false, false, false};

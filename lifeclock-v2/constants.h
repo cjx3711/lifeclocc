@@ -3,6 +3,9 @@
 
 #define SECONDS_IN_DAY 86400
 
+#define SECONDS false
+#define DAYS true
+
 //Pin connected to ST_CP of 74HC595
 #define SR_LATCH_PIN 8
 //Pin connected to SH_CP of 74HC595

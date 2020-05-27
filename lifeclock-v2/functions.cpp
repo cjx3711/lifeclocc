@@ -493,7 +493,11 @@ void stateClock() {
   counter = getSecondsTillDeath();
   switch(programSubState) {
     case 0: // Regular Clock Mode
-      twoNumbersToDisplay(counter / SECONDS_IN_DAY, counter % SECONDS_IN_DAY, 9 - (secondsToSubtract / 100));
+      if (DISPLAY_MODE == DAYS)
+        twoNumbersToDisplay(counter / SECONDS_IN_DAY, counter % SECONDS_IN_DAY, 9 - (secondsToSubtract / 100));
+      else if (DISPLAY_MODE == SECONDS)
+        numberToDisplay(counter, 9 - (secondsToSubtract / 100));
+        
       break;
     case 1: // View Date Mode
       digitalWrite(LED_DATE_PIN, HIGH);
