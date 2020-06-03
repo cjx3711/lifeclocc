@@ -126,8 +126,13 @@ void decisecondSettingToDisplay(bool on) {
     shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
     shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DOT);
     shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
-    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_N);
-    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_O);
+    if (blinkPhase) {
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    } else {
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_N);
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_O);
+    }
     shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
     shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
     shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
@@ -139,10 +144,15 @@ void decisecondSettingToDisplay(bool on) {
     shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, ROTATION_CODE[anim]);
     shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
     shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
-
-    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_F);
-    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_F);
-    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_O);
+    if (blinkPhase) {
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    } else {
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_F);
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_F);
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_O);
+    }
     shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
     shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
     shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
@@ -542,6 +552,11 @@ void stateClock() {
     changeState(STATE_SET_CLOCK);
   }
 
+  if (anyButtonRelease()) timeoutMills = 0; // Reset the timeout counter
+  if (timeoutMills > CLOCK_STATE_TIMEOUT) {
+    programSubState = 0;
+  }
+
   if (buttonRelease(BTN_TIME)) {
     if (programSubState != 2) programSubState = 2;
     else programSubState = 0;
@@ -559,13 +574,10 @@ void stateClock() {
         twoNumbersToDisplay(counter / SECONDS_IN_DAY, counter % SECONDS_IN_DAY, 9 - (secondsToSubtract / 100));
       else if (DISPLAY_MODE == SECONDS)
         numberToDisplay(counter, 9 - (secondsToSubtract / 100));
-        
       break;
     case 1: // View Date Mode
       digitalWrite(LED_DATE_PIN, HIGH);
-
       dateToDisplay(tm.Year + 1970, tm.Month, tm.Day, 0);
-      
       break;
     case 2: // View Time Mode
       digitalWrite(LED_TIME_PIN, HIGH);
