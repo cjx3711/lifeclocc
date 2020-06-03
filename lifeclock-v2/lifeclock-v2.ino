@@ -16,6 +16,8 @@ unsigned long timeoutMills;
 bool blinkPhase, prevBlinkPhase, blinkPhaseChange;
 bool repeatPhase, prevRepeatPhase, repeatPhaseChange;
 
+bool showDecisecond = true;
+
 // Date calculation workings
 tmElements_t tm;
 tmElements_t tm2; // Stores birthday for subtraction
@@ -42,6 +44,15 @@ uint8_t NUMBER_CODE[] = {
   B11110110,
 };
 
+uint8_t ROTATION_CODE[] = {
+  CA_SEG_A,
+  CA_SEG_B,
+  CA_SEG_C,
+  CA_SEG_D,
+  CA_SEG_E,
+  CA_SEG_F
+};
+
 uint8_t NUMBER_CODE_DP[] = {
   B11111101,
   B01100001,
@@ -64,13 +75,15 @@ void setup() {
   initVariables();
   setupBlink();
   splashScreen();
+  for ( int i = 0; i < 4; i++ ) {
+    setupBlink(LED_BDAY_PIN, 100, 0);
+    setupBlink(LED_TIME_PIN, 100, 0);
+    setupBlink(LED_DATE_PIN, 100, 0);
+    setupBlink(LED_CLOCK_PIN, 100, 0);
+  }
   Serial.begin(9600);
-  setupBlink();
-  delay(3000);
   readBirthday();
-
   setupBlink();
-
 
   Serial.println("Lifeclocc Started");
 

@@ -31,21 +31,36 @@ bool userModifyVariable(uint16_t &var, uint16_t min, uint16_t max) {
   return false;
 }
 
+bool userModifyVariable(bool &var) {
+  if ((buttonPress(BTN_UP) || (longPressMills[BTN_UP] > SHORT_PRESS_TIMEOUT && repeatPhaseChange)) ||
+      (buttonPress(BTN_DOWN)|| (longPressMills[BTN_DOWN] > SHORT_PRESS_TIMEOUT && repeatPhaseChange))) {
+    var = !var;
+    return true;
+  }
+  return false;
+}
+
 // ====================== DISPLAY HELPERS =======================
 
 
 void numberToDisplay(unsigned long number, uint8_t decimal) {
   unsigned long workingCounter = number;
 
-  digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
-  // Send out the number after the decimal first.
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[decimal]);
-
-  // Send the number with the decimal digit
   uint8_t digit = workingCounter % 10;
   workingCounter = workingCounter / 10;
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
 
+  digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
+  // Send out the number after the decimal first.
+  if (showDecisecond)
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[decimal]);
+  else
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, ROTATION_CODE[(currentMills / 166) % 6]);
+  
+  // Send the number with the decimal digiz
+  if (showDecisecond)
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
+  else
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
   for ( int i = 0; i < 9; i++ ) {
     digit = workingCounter % 10;
     workingCounter = workingCounter / 10;
@@ -57,14 +72,23 @@ void numberToDisplay(unsigned long number, uint8_t decimal) {
 void twoNumbersToDisplay(unsigned long days, unsigned long seconds, uint8_t decimal) {
   unsigned long workingCounter = seconds;
 
-  digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
-  // Send out the number after the decimal first.
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[decimal]);
-
-  // Send the number with the decimal digit
   uint8_t digit = workingCounter % 10;
   workingCounter = workingCounter / 10;
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
+
+  digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
+  // Send out the number after the decimal first
+  if (showDecisecond) {
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[decimal]);
+  } else {
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, ROTATION_CODE[(currentMills / 166) % 6]);
+  }
+
+  // Send the number with the decimal digit
+
+  if (showDecisecond)
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
+  else
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
 
   // Send the rest of the seconds' digit
   for ( int i = 0; i < 4; i++ ) {
@@ -94,6 +118,39 @@ void twoNumbersToDisplay(unsigned long days, unsigned long seconds, uint8_t deci
   digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
 }
 
+void decisecondSettingToDisplay(bool on) {
+  digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
+
+  if (on) {
+    uint8_t digit = (millis() / 100) % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_DOT);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_N);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_O);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+  } else {
+    uint8_t anim = (millis() / 166) % 6;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, ROTATION_CODE[anim]);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_F);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_F);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_O);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
+  }
+  digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
+}
 void timeToDisplay(uint16_t h, uint16_t m, uint16_t s, uint8_t blinkWhich) {
   digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
   uint8_t digit;
@@ -340,19 +397,24 @@ void printTime(tmElements_t time) {
 }
 
 // ========================== SETUP ============================
-void setupBlink() {
-  digitalWrite(LED_PIN, HIGH);
-  digitalWrite(LED_BDAY_PIN, HIGH);
-  digitalWrite(LED_CLOCK_PIN, HIGH);
-  digitalWrite(LED_TIME_PIN, HIGH);
-  digitalWrite(LED_DATE_PIN, HIGH);
-  delay(100);
+
+void setupBlink(uint8_t whichLED, uint16_t onTime, uint16_t offTime) {
+  if (!whichLED || whichLED == LED_PIN) digitalWrite(LED_PIN, HIGH);
+  if (!whichLED || whichLED == LED_BDAY_PIN) digitalWrite(LED_BDAY_PIN, HIGH);
+  if (!whichLED || whichLED == LED_CLOCK_PIN) digitalWrite(LED_CLOCK_PIN, HIGH);
+  if (!whichLED || whichLED == LED_TIME_PIN) digitalWrite(LED_TIME_PIN, HIGH);
+  if (!whichLED || whichLED == LED_DATE_PIN) digitalWrite(LED_DATE_PIN, HIGH);
+  delay(onTime);
   digitalWrite(LED_PIN, LOW);
   digitalWrite(LED_BDAY_PIN, LOW);
   digitalWrite(LED_CLOCK_PIN, LOW);
   digitalWrite(LED_TIME_PIN, LOW);
   digitalWrite(LED_DATE_PIN, LOW);
-  delay(150);
+  delay(offTime);
+}
+
+void setupBlink() {
+  setupBlink(false, 150, 100);
 }
 
 
@@ -533,6 +595,8 @@ void stateSetClock() {
       timeChanged = userModifyVariable(currentTime.minute, 0, 59); break;
     case 6: // Second
       timeChanged = userModifyVariable(currentTime.second, 0, 59); break;
+    case 7: // Decisecond Display
+      userModifyVariable(showDecisecond); break;
   }
   maxDays = daysInMonth(currentDate.month, currentDate.year + 1970);
   if (currentDate.date > maxDays) currentDate.date = maxDays;
@@ -548,12 +612,12 @@ void stateSetClock() {
 
   if ( buttonRelease(BTN_NEXT) ) {
     programSubState++;
-    if (programSubState > 6) programSubState = 1;
+    if (programSubState > 7) programSubState = 1;
   }
 
   if ( buttonRelease(BTN_PREV) ) {
     programSubState--;
-    if (programSubState < 1) programSubState = 6;
+    if (programSubState < 1) programSubState = 7;
   }
   
   if (longPressMills[BTN_NEXT] > LONG_PRESS_TIMEOUT || longPressMills[BTN_PREV] > LONG_PRESS_TIMEOUT) {
@@ -563,8 +627,10 @@ void stateSetClock() {
 
   if (programSubState <= 3) {
     dateToDisplay(tm.Year + 1970, tm.Month, tm.Day, programSubState == 0 ? 1 : programSubState);
-  } else {
+  } else if (programSubState <= 6) {
     timeToDisplay(tm.Hour, tm.Minute, tm.Second, programSubState - 3);
+  } else {
+    decisecondSettingToDisplay(showDecisecond);
   }
 }
 void stateSetBirthday() {
@@ -606,14 +672,20 @@ void stateSetBirthday() {
 
 }
 void stateDebug() {
-  testScreen();
-  digitalWrite(LED_DATE_PIN, HIGH);
-  digitalWrite(LED_CLOCK_PIN, HIGH);
-  digitalWrite(LED_TIME_PIN, HIGH);
-  digitalWrite(LED_BDAY_PIN, HIGH);
-  if (longPressMills[BTN_UP] > LONG_PRESS_TIMEOUT && longPressMills[BTN_DOWN] > LONG_PRESS_TIMEOUT) {
-    changeState(STATE_CLOCK);
+  if (blinkPhase) {
+    testScreen();
+    digitalWrite(LED_DATE_PIN, HIGH);
+    digitalWrite(LED_CLOCK_PIN, HIGH);
+    digitalWrite(LED_TIME_PIN, HIGH);
+    digitalWrite(LED_BDAY_PIN, HIGH);
+  } else {
+    blankScreen();
+    digitalWrite(LED_DATE_PIN, LOW);
+    digitalWrite(LED_CLOCK_PIN, LOW);
+    digitalWrite(LED_TIME_PIN, LOW);
+    digitalWrite(LED_BDAY_PIN, LOW);
   }
+
 
   // Input Handlers
   // This ensures that all buttons are released first.
@@ -710,7 +782,7 @@ void stateGame() {
   calcAndRenderCharacter(character);
 
 
-  if (longPressMills[BTN_UP] > LONG_PRESS_TIMEOUT && longPressMills[BTN_DOWN] > LONG_PRESS_TIMEOUT) {
+  if (anyButtonPress()) {
     changeState(STATE_CLOCK);
   }
 }

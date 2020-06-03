@@ -12,6 +12,7 @@ extern const bool DISPLAY_MODE;
 
 extern uint8_t NUMBER_CODE [];
 extern uint8_t NUMBER_CODE_DP [];
+extern uint8_t ROTATION_CODE [];
 
 extern bool buttonStatesPrev [];
 extern bool buttonStates [];
@@ -25,6 +26,8 @@ extern unsigned long timeoutMills;
 
 extern bool blinkPhase, prevBlinkPhase, blinkPhaseChange;
 extern bool repeatPhase, prevRepeatPhase, repeatPhaseChange;
+
+extern bool showDecisecond;
 
 // Date calculation workings
 extern tmElements_t tm;
@@ -48,6 +51,7 @@ bool anyButtonPress();
 bool buttonRelease(uint8_t btn);
 bool buttonPress(uint8_t btn);
 bool userModifyVariable(uint16_t &var, uint16_t min, uint16_t max);
+bool userModifyVariable(bool &var);
 
 // ====================== DISPLAY HELPERS =======================
 
@@ -72,6 +76,7 @@ void printTime(tmElements_t time);
 
 // =========================== SETUP ==============================
 void setupBlink();
+void setupBlink(uint8_t whichLED, uint16_t onTime, uint16_t offTime);
 void initVariables();
 void initPins();
 void readBirthday();
