@@ -13,6 +13,8 @@ unsigned long prevMills;
 unsigned long currentMills;
 unsigned long timeoutMills;
 
+uint16_t loopInt = 0;
+
 bool blinkPhase, prevBlinkPhase, blinkPhaseChange;
 bool repeatPhase, prevRepeatPhase, repeatPhaseChange;
 
@@ -92,10 +94,22 @@ void setup() {
   prevMills = currentMills = millis();
 
   initCharacter();
+
+  // Invert all the bits. This is needed if we are using common cathode.
+//  for (int i = 0; i < 10; i++) { 
+//    NUMBER_CODE[i] = NUMBER_CODE[i] ^ B11111111;
+//  }
+//  for (int i = 0; i < 10; i++) { 
+//    NUMBER_CODE_DP[i] = NUMBER_CODE_DP[i] ^ B11111111;
+//  }
+//  for (int i = 0; i < 6; i++) { 
+//    ROTATION_CODE[i] = ROTATION_CODE[i] ^ B11111111;
+//  }
 }
 
 
 void loop() {
+  loopInt++;
   getTime();
   timerPreLoop();
   buttonStatePreLoop();
@@ -137,5 +151,4 @@ void loop() {
   }
 
   buttonStatePostLoop();
-  delay(25);
 }

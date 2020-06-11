@@ -14,6 +14,8 @@ extern uint8_t NUMBER_CODE [];
 extern uint8_t NUMBER_CODE_DP [];
 extern uint8_t ROTATION_CODE [];
 
+extern uint16_t loopInt;
+
 extern bool buttonStatesPrev [];
 extern bool buttonStates [];
 extern unsigned long longPressMills [];

@@ -76,44 +76,58 @@ void twoNumbersToDisplay(unsigned long days, unsigned long seconds, uint8_t deci
   workingCounter = workingCounter / 10;
 
   digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
-  // Send out the number after the decimal first
-  if (showDecisecond) {
-    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[decimal]);
+
+  if (loopInt % 2 == 0 ) {
+    // Send out the number after the decimal first
+    if (showDecisecond) {
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[decimal]);
+    } else {
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, ROTATION_CODE[(currentMills / 166) % 6]);
+    }
+  
+    // Send the number with the decimal digit
+  
+    if (showDecisecond)
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
+    else
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  
+    // Send the rest of the seconds' digit
+    for ( int i = 0; i < 4; i++ ) {
+      digit = workingCounter % 10;
+      workingCounter = workingCounter / 10;
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+    }
   } else {
-    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, ROTATION_CODE[(currentMills / 166) % 6]);
+    for ( int i = 0; i < 6; i++ )
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
   }
-
-  // Send the number with the decimal digit
-
-  if (showDecisecond)
-    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
-  else
-    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
-
-  // Send the rest of the seconds' digit
-  for ( int i = 0; i < 4; i++ ) {
-    digit = workingCounter % 10;
-    workingCounter = workingCounter / 10;
-    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
-  }
+  
 
   workingCounter = days;
 
-  uint8_t restOfNumbers = 5; // Used to make decimal point blink.
-  if ( seconds % 2 ) { 
-    // Send the number with the decimal digit
-    digit = workingCounter % 10;
-    workingCounter = workingCounter / 10;
-    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
-    restOfNumbers = 4;
+  if (loopInt % 2 == 1) {
+    uint8_t restOfNumbers = 5; // Used to make decimal point blink.
+    if ( seconds % 2 ) { 
+      // Send the number with the decimal digit
+      digit = workingCounter % 10;
+      workingCounter = workingCounter / 10;
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
+      restOfNumbers = 4;
+    }
+    
+    // Send the rest of the days' digits
+    for ( int i = 0; i < restOfNumbers; i++ ) {
+      digit = workingCounter % 10;
+      workingCounter = workingCounter / 10;
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+    }
+    
+  } else {
+    for ( int i = 0; i < 5; i++ )
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, CA_BLANK);
   }
   
-  // Send the rest of the days' digits
-  for ( int i = 0; i < restOfNumbers; i++ ) {
-    digit = workingCounter % 10;
-    workingCounter = workingCounter / 10;
-    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
-  }
 
   digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
 }
