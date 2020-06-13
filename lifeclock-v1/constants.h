@@ -1,6 +1,8 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#define DESIRED_LIFESPAN 100 // years
+
 #define LED_PIN 6
 #define SET_LED_PIN 42
 #define DATE_LED_PIN 43
