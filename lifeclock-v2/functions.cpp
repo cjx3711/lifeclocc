@@ -111,7 +111,7 @@ void threeNumbersToDisplay(unsigned long weeks, unsigned long days, unsigned lon
     if ( seconds % 2 ) { 
       shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
     } else {
-      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
+      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
     }
 
     workingCounter = weeks;
