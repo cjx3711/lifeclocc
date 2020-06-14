@@ -1,6 +1,6 @@
 #include "functions.h"
 const bool DEBUG = true;
-const bool DISPLAY_MODE = DAYS; // Display mode can either be SECONDS or DAYS
+const uint8_t DISPLAY_MODE = WEEKS; // Display mode can either be SECONDS or DAYS
 
 // Button states for UP, DOWN, RESET
 bool buttonStatesPrev [4] = {false, false, false, false};
@@ -72,20 +72,20 @@ SCharacter character;
 
 void setup() {
   initPins();
-  testScreen();
-  setupBlink();
+  blankScreen();
   initVariables();
-  setupBlink();
-  splashScreen();
   for ( int i = 0; i < 4; i++ ) {
     setupBlink(LED_BDAY_PIN, 100, 0);
     setupBlink(LED_TIME_PIN, 100, 0);
     setupBlink(LED_DATE_PIN, 100, 0);
     setupBlink(LED_CLOCK_PIN, 100, 0);
   }
+  splashScreen();
+  blankScreen();
   Serial.begin(9600);
   readBirthday();
   setupBlink();
+  timedTestScreen();
 
   Serial.println("Lifeclocc Started");
 
@@ -96,15 +96,15 @@ void setup() {
   initCharacter();
 
   // Invert all the bits. This is needed if we are using common cathode.
-//  for (int i = 0; i < 10; i++) { 
-//    NUMBER_CODE[i] = NUMBER_CODE[i] ^ B11111111;
-//  }
-//  for (int i = 0; i < 10; i++) { 
-//    NUMBER_CODE_DP[i] = NUMBER_CODE_DP[i] ^ B11111111;
-//  }
-//  for (int i = 0; i < 6; i++) { 
-//    ROTATION_CODE[i] = ROTATION_CODE[i] ^ B11111111;
-//  }
+  for (int i = 0; i < 10; i++) { 
+    NUMBER_CODE[i] = NUMBER_CODE[i] ^ B11111111;
+  }
+  for (int i = 0; i < 10; i++) { 
+    NUMBER_CODE_DP[i] = NUMBER_CODE_DP[i] ^ B11111111;
+  }
+  for (int i = 0; i < 6; i++) { 
+    ROTATION_CODE[i] = ROTATION_CODE[i] ^ B11111111;
+  }
 }
 
 
