@@ -7,9 +7,6 @@
 #include "datatypes.h"
 #include "constants.h"
 
-extern const bool DEBUG;
-extern const uint8_t DISPLAY_MODE;
-
 extern uint8_t NUMBER_CODE [];
 extern uint8_t NUMBER_CODE_DP [];
 extern uint8_t ROTATION_CODE [];
