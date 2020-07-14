@@ -9,6 +9,6 @@ https://lifeclo.cc/manual/
 ## What's this repo about?
 This is the open source repository for the code and schematics for making lifeclocc.
 
-Here you will find the code powering lifeclocc, the 3D models for the various parts, as well as the schematics for the PCBs.
+Here you will find the code powering lifeclocc. If you want to get the PCBs, mounts and other bits of source, please head to the source page of my website.
 
-Unfortunately, this is still incomplete. I'll upload all this at some point in the future hopefully.
+https://manual.lifeclo.cc/source.html
