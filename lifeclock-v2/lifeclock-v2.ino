@@ -2,9 +2,9 @@
 
 // Settings are in the constants.h file
 // // If it's common cathode, set to 0
-// #define COMMON_ANODE 0
-// // Display mode can either be SECONDS or DAYS
-// #define DISPLAY_MODE WEEKS
+// #define COMMON_ANODE 1
+// // Display mode can either be SECONDS, DAYS or WEEKS
+// #define DISPLAY_MODE DAYS
 // // Debug mode will print stuff
 // #define DEBUG true
 
@@ -124,7 +124,9 @@ void loop() {
   if (digitalRead(BTN_TIME_PIN)) analogWrite(LED_TIME_PIN, 255);
   if (digitalRead(BTN_DATE_PIN)) analogWrite(LED_DATE_PIN, 255);
 
-  int brightness = analogRead(POTIOMETER_PIN) * ((255.0f - MIN_BRIGHTNESS) / 1024.0f) + MIN_BRIGHTNESS;
+  int rawAnalog = analogRead(POTIOMETER_PIN);
+  if (COMMON_ANODE) rawAnalog = 1024 - rawAnalog; // Invert the brightness for common anode
+  int brightness = rawAnalog * ((255.0f - MIN_BRIGHTNESS) / 1024.0f) + MIN_BRIGHTNESS;
   analogWrite(DSP_POWER_PIN, brightness);
 
   switch(programState) {
