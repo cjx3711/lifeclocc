@@ -1,10 +1,24 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-#define SECONDS_IN_DAY 86400
+#define SECONDS 0
+#define DAYS 1
+#define WEEKS 2
 
-#define SECONDS false
-#define DAYS true
+
+// ====== SETTINGS ======
+// If it's common cathode, set to 0
+#define COMMON_ANODE 0
+// Display mode can either be SECONDS or DAYS
+#define DISPLAY_MODE WEEKS
+// Debug mode will print stuff
+#define DEBUG true
+// ====== SETTINGS ======
+
+#define SECONDS_IN_DAY 86400
+#define DAYS_IN_WEEK 7
+
+
 
 //Pin connected to ST_CP of 74HC595
 #define SR_LATCH_PIN 8
@@ -48,35 +62,67 @@
 #define BTN_CLOCK 3
 
 // Patterns for common anode 7-segment displays
-#define CA_L B11100011
-#define CA_I B11110011
-#define CA_F B01110001
-#define CA_E B01100001
-#define CA_C B01100011
-#define CA_O_DP B00000010
-#define CA_O B00000011
-#define CA_N B00010011
+#define CA_L 0b11100011
+#define CA_I 0b11110011
+#define CA_F 0b01110001
+#define CA_E 0b01100001
+#define CA_C 0b01100011
+#define CA_O_DP 0b00000010
+#define CA_O 0b00000011
+#define CA_N 0b00010011
 
-#define CA_DASH B11111101
-#define CA_FULL B00000000
-#define CA_BLANK B11111111
-#define CA_DOT B11111110
+#define CA_DASH 0b11111101
+#define CA_FULL 0b00000000
+#define CA_BLANK 0b11111111
+#define CA_DOT 0b11111110
 
-#define CA_LOWER_LEFT_C B11100101
-#define CA_LOWER_RIGHT_C B11001101
-#define CA_LOWER_O B11000101
-#define CA_LOWER_DASH B11101111
-#define CA_LOWER_RIGHT B11110111
-#define CA_LOWER_LEFT B11011111
+#define CA_LOWER_LEFT_C 0b11100101
+#define CA_LOWER_RIGHT_C 0b11001101
+#define CA_LOWER_O 0b11000101
+#define CA_LOWER_DASH 0b11101111
+#define CA_LOWER_RIGHT 0b11110111
+#define CA_LOWER_LEFT 0b11011111
 
-#define CA_SEG_A B01111111
-#define CA_SEG_B B10111111
-#define CA_SEG_C B11011111
-#define CA_SEG_D B11101111
-#define CA_SEG_E B11110111
-#define CA_SEG_F B11111011
-#define CA_SEG_G B11111101
-#define CA_SEG_DP B11111110
+#define CA_SEG_A 0b01111111
+#define CA_SEG_B 0b10111111
+#define CA_SEG_C 0b11011111
+#define CA_SEG_D 0b11101111
+#define CA_SEG_E 0b11110111
+#define CA_SEG_F 0b11111011
+#define CA_SEG_G 0b11111101
+#define CA_SEG_DP 0b11111110
+
+#define CA_0 0b11111100
+#define CA_1 0b01100000
+#define CA_2 0b11011010
+#define CA_3 0b11110010
+#define CA_4 0b01100110
+#define CA_5 0b10110110
+#define CA_6 0b10111110
+#define CA_7 0b11100000
+#define CA_8 0b11111110
+#define CA_9 0b11110110
+
+#define CA_0_DP 0b11111101
+#define CA_1_DP 0b01100001
+#define CA_2_DP 0b11011011
+#define CA_3_DP 0b11110011
+#define CA_4_DP 0b01100111
+#define CA_5_DP 0b10110111
+#define CA_6_DP 0b10111111
+#define CA_7_DP 0b11100001
+#define CA_8_DP 0b11111111
+#define CA_9_DP 0b11110111
+
+#if COMMON_ANODE
+
+#define DSP(SYM) (CA_##SYM)
+
+#else
+
+#define DSP(SYM) ((CA_##SYM) ^ 0b11111111 )
+
+#endif
 
 
 #define SHORT_PRESS_TIMEOUT 800
@@ -85,7 +131,6 @@
 #define CLOCK_STATE_TIMEOUT 5000
 #define BLINK_MS 250
 #define REPEAT_MS 100
-
 
 #define STATE_CLOCK 0
 #define STATE_SET_CLOCK 1

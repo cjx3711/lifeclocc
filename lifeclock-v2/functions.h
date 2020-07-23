@@ -7,12 +7,11 @@
 #include "datatypes.h"
 #include "constants.h"
 
-extern const bool DEBUG;
-extern const bool DISPLAY_MODE;
-
 extern uint8_t NUMBER_CODE [];
 extern uint8_t NUMBER_CODE_DP [];
 extern uint8_t ROTATION_CODE [];
+
+extern uint16_t loopInt;
 
 extern bool buttonStatesPrev [];
 extern bool buttonStates [];
@@ -57,11 +56,14 @@ bool userModifyVariable(bool &var);
 
 void numberToDisplay(unsigned long number, uint8_t);
 void twoNumbersToDisplay(unsigned long days, unsigned long seconds, uint8_t decimal);
+void threeNumbersToDisplay(unsigned long weeks, unsigned long days, unsigned long seconds, uint8_t decimal);
+
 void timeToDisplay(uint16_t h, uint16_t m, uint16_t s, uint8_t blinkWhich);
 void dateToDisplay(uint16_t d, uint16_t m, uint16_t y, uint8_t blinkWhich);
 void lineToDisplay();
 void splashScreen();
 void testScreen();
+void timedTestScreen();
 void blankScreen();
 
 

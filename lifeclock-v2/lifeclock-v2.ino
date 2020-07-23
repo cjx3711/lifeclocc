@@ -1,6 +1,12 @@
 #include "functions.h"
-const bool DEBUG = true;
-const bool DISPLAY_MODE = DAYS; // Display mode can either be SECONDS or DAYS
+
+// Settings are in the constants.h file
+// // If it's common cathode, set to 0
+// #define COMMON_ANODE 0
+// // Display mode can either be SECONDS or DAYS
+// #define DISPLAY_MODE WEEKS
+// // Debug mode will print stuff
+// #define DEBUG true
 
 // Button states for UP, DOWN, RESET
 bool buttonStatesPrev [4] = {false, false, false, false};
@@ -12,6 +18,8 @@ unsigned long millsDelta;
 unsigned long prevMills;
 unsigned long currentMills;
 unsigned long timeoutMills;
+
+uint16_t loopInt = 0;
 
 bool blinkPhase, prevBlinkPhase, blinkPhaseChange;
 bool repeatPhase, prevRepeatPhase, repeatPhaseChange;
@@ -32,58 +40,58 @@ uint8_t programState;
 uint8_t programSubState;
 
 uint8_t NUMBER_CODE[] = {
-  B11111100,
-  B01100000,
-  B11011010,
-  B11110010,
-  B01100110,
-  B10110110,
-  B10111110,
-  B11100000,
-  B11111110,
-  B11110110,
+  DSP(0),
+  DSP(1),
+  DSP(2),
+  DSP(3),
+  DSP(4),
+  DSP(5),
+  DSP(6),
+  DSP(7),
+  DSP(8),
+  DSP(9),
 };
 
 uint8_t ROTATION_CODE[] = {
-  CA_SEG_A,
-  CA_SEG_B,
-  CA_SEG_C,
-  CA_SEG_D,
-  CA_SEG_E,
-  CA_SEG_F
+  DSP(SEG_A),
+  DSP(SEG_B),
+  DSP(SEG_C),
+  DSP(SEG_D),
+  DSP(SEG_E),
+  DSP(SEG_F)
 };
 
 uint8_t NUMBER_CODE_DP[] = {
-  B11111101,
-  B01100001,
-  B11011011,
-  B11110011,
-  B01100111,
-  B10110111,
-  B10111111,
-  B11100001,
-  B11111111,
-  B11110111,
+  DSP(0_DP),
+  DSP(1_DP),
+  DSP(2_DP),
+  DSP(3_DP),
+  DSP(4_DP),
+  DSP(5_DP),
+  DSP(6_DP),
+  DSP(7_DP),
+  DSP(8_DP),
+  DSP(9_DP),
 };
 
 SCharacter character;
 
 void setup() {
   initPins();
-  testScreen();
-  setupBlink();
+  blankScreen();
   initVariables();
-  setupBlink();
-  splashScreen();
   for ( int i = 0; i < 4; i++ ) {
     setupBlink(LED_BDAY_PIN, 100, 0);
     setupBlink(LED_TIME_PIN, 100, 0);
     setupBlink(LED_DATE_PIN, 100, 0);
     setupBlink(LED_CLOCK_PIN, 100, 0);
   }
+  splashScreen();
+  blankScreen();
   Serial.begin(9600);
   readBirthday();
   setupBlink();
+  timedTestScreen();
 
   Serial.println("Lifeclocc Started");
 
@@ -96,6 +104,7 @@ void setup() {
 
 
 void loop() {
+  loopInt++;
   getTime();
   timerPreLoop();
   buttonStatePreLoop();
@@ -137,5 +146,4 @@ void loop() {
   }
 
   buttonStatePostLoop();
-  delay(25);
 }
