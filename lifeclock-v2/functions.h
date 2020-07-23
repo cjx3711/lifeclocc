@@ -18,6 +18,7 @@ extern bool buttonStates [];
 extern unsigned long longPressMills [];
 
 extern unsigned long counter;
+extern unsigned long prevCounter;
 extern unsigned long millsDelta;
 extern unsigned long prevMills;
 extern unsigned long currentMills;
@@ -36,7 +37,8 @@ extern SDate currentDate;
 extern SDate birthDate;
 extern STime currentTime;
 
-extern uint16_t secondsToSubtract;
+extern uint16_t millsToDisplay;
+
 
 extern uint8_t programState;
 extern uint8_t programSubState;

@@ -604,7 +604,7 @@ void setupBlink() {
 
 
 void initVariables() {
-  counter = 1698765432;
+  counter = prevCounter = 1698765432;
   // Invert all the bits. This is needed if we are using common cathode.
   for (int i = 0; i < 10; i++) {
     NUMBER_CODE[i] = NUMBER_CODE[i] ^ B11111111;
@@ -679,7 +679,7 @@ void timerPreLoop() {
   repeatPhaseChange = repeatPhase != prevRepeatPhase;
   prevRepeatPhase = repeatPhase;
 
-  secondsToSubtract += millsDelta;
+  millsToDisplay += millsDelta;
 }
 
 void buttonStatePreLoop() {
@@ -740,15 +740,20 @@ void stateClock() {
     else programSubState = 0;
   }
 
+  prevCounter = counter;
   counter = getSecondsTillDeath();
+  if ( prevCounter != counter ) {
+    millsToDisplay = 0;
+  }
+
   switch(programSubState) {
     case 0: // Regular Clock Mode
       if (DISPLAY_MODE == WEEKS)        
-        threeNumbersToDisplay((counter / SECONDS_IN_DAY) / DAYS_IN_WEEK, (counter / SECONDS_IN_DAY) % DAYS_IN_WEEK, counter % SECONDS_IN_DAY, 9 - (secondsToSubtract / 100));
+        threeNumbersToDisplay((counter / SECONDS_IN_DAY) / DAYS_IN_WEEK, (counter / SECONDS_IN_DAY) % DAYS_IN_WEEK, counter % SECONDS_IN_DAY, 9 - (millsToDisplay / 100));
       else if (DISPLAY_MODE == DAYS)
-        twoNumbersToDisplay(counter / SECONDS_IN_DAY, counter % SECONDS_IN_DAY, 9 - (secondsToSubtract / 100));
+        twoNumbersToDisplay(counter / SECONDS_IN_DAY, counter % SECONDS_IN_DAY, 9 - (millsToDisplay / 100));
       else if (DISPLAY_MODE == SECONDS)
-        numberToDisplay(counter, 9 - (secondsToSubtract / 100));
+        numberToDisplay(counter, 9 - (millsToDisplay / 100));
       break;
     case 1: // View Date Mode
       digitalWrite(LED_DATE_PIN, HIGH);

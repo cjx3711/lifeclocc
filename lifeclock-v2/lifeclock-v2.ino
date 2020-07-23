@@ -14,6 +14,7 @@ bool buttonStates [4] = {false, false, false, false};
 unsigned long longPressMills [] = {0,0,0,0};
 
 unsigned long counter;
+unsigned long prevCounter;
 unsigned long millsDelta;
 unsigned long prevMills;
 unsigned long currentMills;
@@ -34,7 +35,7 @@ SDate currentDate;
 SDate birthDate;
 STime currentTime;
 
-uint16_t secondsToSubtract;
+uint16_t millsToDisplay;
 
 uint8_t programState;
 uint8_t programSubState;
@@ -109,9 +110,8 @@ void loop() {
   timerPreLoop();
   buttonStatePreLoop();
 
-  if ( secondsToSubtract > 1000 ) {
-    counter--;
-    secondsToSubtract -= 1000;
+  if ( millsToDisplay > 1000 ) {
+    millsToDisplay -= 1000;
   }
 
   analogWrite(LED_BDAY_PIN, 0);
