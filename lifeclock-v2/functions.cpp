@@ -69,14 +69,12 @@ void numberToDisplay(unsigned long number, uint8_t decimal) {
   digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
 }
 
-
 void threeNumbersToDisplay(unsigned long weeks, unsigned long days, unsigned long seconds, uint8_t decimal) {
   unsigned long workingCounter = seconds;
 
   uint8_t digit = workingCounter % 10;
   workingCounter = workingCounter / 10;
 
-  digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
 
   if (loopInt % 2 == 0 ) {
     // Send out the number after the decimal first
@@ -132,22 +130,18 @@ void threeNumbersToDisplay(unsigned long weeks, unsigned long days, unsigned lon
       shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
     }
   }
-  
 
   digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
 }
 
-void twoNumbersToDisplay(unsigned long days, unsigned long seconds, uint8_t decimal) {
+
+void twoNumbersToDisplaySplit(unsigned long days, unsigned long seconds, uint8_t decimal) {
   unsigned long workingCounter = seconds;
 
   uint8_t digit = workingCounter % 10;
   workingCounter = workingCounter / 10;
 
-  digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
-
-  if (DISPLAY_MODE == WEEKS) {
-    
-    if (loopInt % 2 == 0 ) {
+  if (loopInt % 2 == 0 ) {
       // Send out the number after the decimal first
       if (showDecisecond) {
         shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[decimal]);
@@ -190,47 +184,58 @@ void twoNumbersToDisplay(unsigned long days, unsigned long seconds, uint8_t deci
         shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
       }
     }
+}
+void twoNumbersToDisplaySingle(unsigned long days, unsigned long seconds, uint8_t decimal) {
+  unsigned long workingCounter = seconds;
+
+  uint8_t digit = workingCounter % 10;
+  workingCounter = workingCounter / 10;  
+  // Send out the number after the decimal first
+  if (showDecisecond) {
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[decimal]);
   } else {
-    // Send out the number after the decimal first
-    if (showDecisecond) {
-      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[decimal]);
-    } else {
-      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, ROTATION_CODE[(currentMills / 166) % 6]);
-    }
-  
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, ROTATION_CODE[(currentMills / 166) % 6]);
+  }
+
+  // Send the number with the decimal digit
+  if (showDecisecond)
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
+  else
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+
+  // Send the rest of the seconds' digit
+  for ( int i = 0; i < 4; i++ ) {
+    digit = workingCounter % 10;
+    workingCounter = workingCounter / 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  }
+
+  workingCounter = days;
+
+  uint8_t restOfNumbers = 5; // Used to make decimal point blink.
+  if ( seconds % 2 ) { 
     // Send the number with the decimal digit
-    if (showDecisecond)
-      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
-    else
-      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
-  
-    // Send the rest of the seconds' digit
-    for ( int i = 0; i < 4; i++ ) {
-      digit = workingCounter % 10;
-      workingCounter = workingCounter / 10;
-      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
-    }
-
-    workingCounter = days;
-
-    uint8_t restOfNumbers = 5; // Used to make decimal point blink.
-    if ( seconds % 2 ) { 
-      // Send the number with the decimal digit
-      digit = workingCounter % 10;
-      workingCounter = workingCounter / 10;
-      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
-      restOfNumbers = 4;
-    }
-    
-    // Send the rest of the days' digits
-    for ( int i = 0; i < restOfNumbers; i++ ) {
-      digit = workingCounter % 10;
-      workingCounter = workingCounter / 10;
-      shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
-    }
+    digit = workingCounter % 10;
+    workingCounter = workingCounter / 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE_DP[digit]);
+    restOfNumbers = 4;
   }
   
+  // Send the rest of the days' digits
+  for ( int i = 0; i < restOfNumbers; i++ ) {
+    digit = workingCounter % 10;
+    workingCounter = workingCounter / 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  }
 
+}
+void twoNumbersToDisplay(unsigned long days, unsigned long seconds, uint8_t decimal) {
+  digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
+  if (SPLIT_DISPLAY) {
+    twoNumbersToDisplaySplit(days, seconds, decimal);
+  } else {
+    twoNumbersToDisplaySingle(days, seconds, decimal);
+  }
   digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
 }
 
@@ -325,9 +330,52 @@ void timeToDisplay(uint16_t h, uint16_t m, uint16_t s, uint8_t blinkWhich) {
 
   digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
 }
+void dateToDisplaySingle(uint16_t y, uint16_t m, uint16_t d, uint8_t blinkWhich) {
+  uint8_t digit;
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(BLANK));
+  // Day
+  if (blinkWhich == 3 && blinkPhase) {
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(BLANK));
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(BLANK));
+  } else {
+    digit = d % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+    digit = d / 10 % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  }
 
-void dateToDisplay(uint16_t y, uint16_t m, uint16_t d, uint8_t blinkWhich) {
-  digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(DASH));
+
+  // Month
+  if (blinkWhich == 2 && blinkPhase) {
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(BLANK));
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(BLANK));
+  } else {
+    digit = m % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+    digit = m / 10 % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  }
+
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(DASH));
+  // Year
+  if (blinkWhich == 1 && blinkPhase) {
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(BLANK));
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(BLANK));
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(BLANK));
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(BLANK));
+  } else {
+    digit = y % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+    digit = y / 10 % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+    digit = y / 100 % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+    digit = y / 1000 % 10;
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
+  }
+}
+void dateToDisplaySplit(uint16_t y, uint16_t m, uint16_t d, uint8_t blinkWhich) {
   uint8_t digit;
 
   shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(BLANK));
@@ -380,7 +428,15 @@ void dateToDisplay(uint16_t y, uint16_t m, uint16_t d, uint8_t blinkWhich) {
   } else {
     for (int i = 0; i < 5; i++) shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(BLANK));
   }
-
+}
+void dateToDisplay(uint16_t y, uint16_t m, uint16_t d, uint8_t blinkWhich) {
+  digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
+  
+  if (SPLIT_DISPLAY) {
+    dateToDisplaySplit(y, m, d, blinkWhich);
+  } else {
+    dateToDisplaySingle(y, m, d, blinkWhich);
+  }
 
   digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
 }
@@ -401,53 +457,56 @@ void lineToDisplay(unsigned long counter) {
   digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
 }
   
-  
-void splashScreen() {
+void splashScreenSingle() {
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(DASH));
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(C));
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(C));
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(O_DP));
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(L));
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(C));
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(E));
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(F));
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(I));
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(L));
+  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(DASH));
+}
 
+void splashScreenSplit(bool left) {
+  if (left) {
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(DASH));
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(C));
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(C));
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(O_DP));
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(L));
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(C));
+    for (uint8_t i = 0; i < 5; i++) shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(BLANK));
+  } else {
+    for (uint8_t i = 0; i < 6; i++) shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(BLANK));
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(E));
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(F));
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(I));
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(L));
+    shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(DASH));
+  }
+}
+void splashScreen() {
   uint16_t startTime = millis();
   bool left = true;
   while (millis() - startTime < 2000) {
     left = !left;
     digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
-    if (DISPLAY_MODE == WEEKS) {
-      if (left) {
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(DASH));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(C));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(C));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(O_DP));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(L));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(C));
-        for (uint8_t i = 0; i < 5; i++) shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(BLANK));
-      } else {
-        for (uint8_t i = 0; i < 6; i++) shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(BLANK));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(E));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(F));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(I));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(L));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(DASH));
-      }
+    if (SPLIT_DISPLAY) {
+      splashScreenSplit(left);
     } else {
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(DASH));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(C));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(C));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(O_DP));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(L));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(C));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(E));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(F));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(I));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(L));
-        shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(DASH));
+      splashScreenSingle();
     }
-    
     digitalWrite(SR_LATCH_PIN, HIGH); // Unfreezes the shift registers
   }
-
 }
 
 void testScreen() {
   digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
-  if (DISPLAY_MODE == WEEKS) {
+  if (SPLIT_DISPLAY) {
     if (loopInt % 2) {
       for (uint8_t i = 0; i < 6; i++) shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(FULL));
       for (uint8_t i = 0; i < 5; i++) shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(BLANK));

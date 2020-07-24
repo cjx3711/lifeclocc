@@ -8,11 +8,13 @@
 
 // ====== SETTINGS ======
 // If it's common cathode, set to 0
-#define COMMON_ANODE 0
+#define COMMON_ANODE 1
 // Display mode can either be SECONDS, DAYS or WEEKS
 #define DISPLAY_MODE DAYS
 // Debug mode will print stuff
 #define DEBUG true
+
+#define SPLIT_DISPLAY 0
 // ====== SETTINGS ======
 
 #define SECONDS_IN_DAY 86400

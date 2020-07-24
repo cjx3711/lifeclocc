@@ -125,7 +125,7 @@ void loop() {
   if (digitalRead(BTN_DATE_PIN)) analogWrite(LED_DATE_PIN, 255);
 
   int rawAnalog = analogRead(POTIOMETER_PIN);
-  if (COMMON_ANODE) rawAnalog = 1024 - rawAnalog; // Invert the brightness for common anode
+  if (!COMMON_ANODE) rawAnalog = 1024 - rawAnalog; // Invert the brightness for common anode
   int brightness = rawAnalog * ((255.0f - MIN_BRIGHTNESS) / 1024.0f) + MIN_BRIGHTNESS;
   analogWrite(DSP_POWER_PIN, brightness);
 

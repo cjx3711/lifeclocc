@@ -56,13 +56,20 @@ bool userModifyVariable(bool &var);
 
 // ====================== DISPLAY HELPERS =======================
 
+
 void numberToDisplay(unsigned long number, uint8_t);
+void twoNumbersToDisplaySplit(unsigned long days, unsigned long seconds, uint8_t decimal);
+void twoNumbersToDisplaySingle(unsigned long days, unsigned long seconds, uint8_t decimal);
 void twoNumbersToDisplay(unsigned long days, unsigned long seconds, uint8_t decimal);
 void threeNumbersToDisplay(unsigned long weeks, unsigned long days, unsigned long seconds, uint8_t decimal);
 
 void timeToDisplay(uint16_t h, uint16_t m, uint16_t s, uint8_t blinkWhich);
 void dateToDisplay(uint16_t d, uint16_t m, uint16_t y, uint8_t blinkWhich);
+void dateToDisplaySplit(uint16_t d, uint16_t m, uint16_t y, uint8_t blinkWhich);
+void dateToDisplaySingle(uint16_t d, uint16_t m, uint16_t y, uint8_t blinkWhich);
 void lineToDisplay();
+void splashScreenSplit(bool left);
+void splashScreenSingle();
 void splashScreen();
 void testScreen();
 void timedTestScreen();
