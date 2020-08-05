@@ -11,6 +11,8 @@
 #define COMMON_ANODE 1
 // Display mode can either be SECONDS, DAYS or WEEKS
 #define DISPLAY_MODE DAYS
+// Years to count down from
+#define TOTAL_YEARS 80
 // Debug mode will print stuff
 #define DEBUG true
 

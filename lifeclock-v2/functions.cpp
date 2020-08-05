@@ -243,7 +243,8 @@ void decisecondSettingToDisplay(bool on) {
   digitalWrite(SR_LATCH_PIN, LOW); // Freezes the shift registers
 
   if (on) {
-    uint8_t digit = (millis() / 100) % 10;
+    uint8_t digit = 9 - (millsToDisplay / 100);
+    if ( pastZero ) digit = 9 - digit;
     shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, NUMBER_CODE[digit]);
     shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(DOT));
     shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, LSBFIRST, DSP(BLANK));
@@ -590,13 +591,15 @@ void setTime() {
 unsigned long getSecondsTillDeath() {
   tm2.Day = birthDate.date;
   tm2.Month = birthDate.month;
-  tm2.Year = birthDate.year + 80 - 1970;
+  tm2.Year = birthDate.year + TOTAL_YEARS - 1970;
   tm2.Hour = tm2.Minute = tm2.Second = 0;
   time_t t1 = makeTime(tm);
   time_t t2 = makeTime(tm2);
   // printTime(tm);
   // printTime(tm2);
-  return t2 - t1;
+  pastZero = t2 < t1;
+  if (!pastZero) return t2 - t1;
+  else return t1 - t2;
 }
 
 
@@ -805,14 +808,16 @@ void stateClock() {
     millsToDisplay = 0;
   }
 
+  uint16_t decimalToShow = 9 - (millsToDisplay / 100);
+  if ( pastZero ) decimalToShow = 9 - decimalToShow;
   switch(programSubState) {
     case 0: // Regular Clock Mode
       if (DISPLAY_MODE == WEEKS)        
-        threeNumbersToDisplay((counter / SECONDS_IN_DAY) / DAYS_IN_WEEK, (counter / SECONDS_IN_DAY) % DAYS_IN_WEEK, counter % SECONDS_IN_DAY, 9 - (millsToDisplay / 100));
+        threeNumbersToDisplay((counter / SECONDS_IN_DAY) / DAYS_IN_WEEK, (counter / SECONDS_IN_DAY) % DAYS_IN_WEEK, counter % SECONDS_IN_DAY, decimalToShow);
       else if (DISPLAY_MODE == DAYS)
-        twoNumbersToDisplay(counter / SECONDS_IN_DAY, counter % SECONDS_IN_DAY, 9 - (millsToDisplay / 100));
+        twoNumbersToDisplay(counter / SECONDS_IN_DAY, counter % SECONDS_IN_DAY, decimalToShow);
       else if (DISPLAY_MODE == SECONDS)
-        numberToDisplay(counter, 9 - (millsToDisplay / 100));
+        numberToDisplay(counter, decimalToShow);
       break;
     case 1: // View Date Mode
       digitalWrite(LED_DATE_PIN, HIGH);

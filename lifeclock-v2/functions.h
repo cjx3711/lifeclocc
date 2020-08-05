@@ -24,6 +24,8 @@ extern unsigned long prevMills;
 extern unsigned long currentMills;
 extern unsigned long timeoutMills;
 
+extern bool pastZero;
+
 extern bool blinkPhase, prevBlinkPhase, blinkPhaseChange;
 extern bool repeatPhase, prevRepeatPhase, repeatPhaseChange;
 

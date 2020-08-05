@@ -5,6 +5,8 @@
 // #define COMMON_ANODE 1
 // // Display mode can either be SECONDS, DAYS or WEEKS
 // #define DISPLAY_MODE DAYS
+// // Years to count down from
+// #define TOTAL_YEARS 80
 // // Debug mode will print stuff
 // #define DEBUG true
 
@@ -19,6 +21,8 @@ unsigned long millsDelta;
 unsigned long prevMills;
 unsigned long currentMills;
 unsigned long timeoutMills;
+
+bool pastZero = false; // Is the clock past 0? If so we count up
 
 uint16_t loopInt = 0;
 

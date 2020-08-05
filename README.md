@@ -44,3 +44,32 @@ https://manual.lifeclo.cc/source.html
   - This will make the display only show seconds and not weeks
   - You can do this for the v2a board as well, but the labels on the board will be wrong.
 - Press upload
+
+
+## Changelog
+
+### v1 (Maker Edition)
+- Initial Release
+  - Clock working
+  - Allow setting of time
+  - Allow setting of birthday
+  - Shows countdown when idle
+
+### v2 (Days / Seconds Edition)
+- Initial Release
+  - Clock working
+  - Allow setting of time
+  - Allow setting of birthday
+  - Setting to disable decisecond digit
+  - Shows countdown when idle
+
+- 14 Jun 2020
+  - Added special months feature
+
+- 23 Jul 2020
+  - Fixed decisecond sync bug. It now syncs to the countdown
+  - Added some settings as macros in the `constants.h` file
+
+- 4 Aug 2020
+  - Will count up after time hits 0
+  - Defined a macro to specify number of years to count from
