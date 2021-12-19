@@ -8,7 +8,8 @@
 
 // ====== SETTINGS ======
 // If it's common cathode, set to 0
-#define COMMON_ANODE 1
+// Common Cathode is 5XXXAX
+// Common Anode is 5XXXBX
 // Display mode can either be SECONDS, DAYS or WEEKS
 #define DISPLAY_MODE DAYS
 // Years to count down from
