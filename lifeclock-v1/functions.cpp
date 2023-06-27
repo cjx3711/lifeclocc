@@ -250,7 +250,7 @@ void setTime() {
 unsigned long getSecondsTillDeath() {
   tm2.Day = birthDate.date;
   tm2.Month = birthDate.month;
-  tm2.Year = birthDate.year + 80 - 1970;
+  tm2.Year = birthDate.year + DESIRED_LIFESPAN - 1970;
   tm2.Hour = tm2.Minute = tm2.Second = 0;
   time_t t1 = makeTime(tm);
   time_t t2 = makeTime(tm2);
